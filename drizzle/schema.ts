@@ -216,3 +216,54 @@ export const userPreferences = mysqlTable("userPreferences", {
 
 export type UserPreference = typeof userPreferences.$inferSelect;
 export type InsertUserPreference = typeof userPreferences.$inferInsert;
+
+/**
+ * Chat support agents table
+ */
+export const chatAgents = mysqlTable("chatAgents", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  status: mysqlEnum("status", ["online", "offline", "away"]).default("offline").notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ChatAgent = typeof chatAgents.$inferSelect;
+export type InsertChatAgent = typeof chatAgents.$inferInsert;
+
+/**
+ * Chat conversations table
+ */
+export const chatConversations = mysqlTable("chatConversations", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  agentId: int("agentId"),
+  status: mysqlEnum("status", ["active", "closed", "waiting"]).default("waiting").notNull(),
+  subject: varchar("subject", { length: 255 }),
+  startedAt: timestamp("startedAt").defaultNow().notNull(),
+  closedAt: timestamp("closedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ChatConversation = typeof chatConversations.$inferSelect;
+export type InsertChatConversation = typeof chatConversations.$inferInsert;
+
+/**
+ * Chat messages table
+ */
+export const chatMessages = mysqlTable("chatMessages", {
+  id: int("id").autoincrement().primaryKey(),
+  conversationId: int("conversationId").notNull(),
+  senderId: int("senderId").notNull(),
+  senderType: mysqlEnum("senderType", ["customer", "agent"]).notNull(),
+  message: text("message").notNull(),
+  attachmentUrl: varchar("attachmentUrl", { length: 500 }),
+  isRead: boolean("isRead").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ChatMessage = typeof chatMessages.$inferSelect;
+export type InsertChatMessage = typeof chatMessages.$inferInsert;

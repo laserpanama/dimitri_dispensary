@@ -15,6 +15,13 @@
       "when": 1768155242815,
       "tag": "0001_deep_archangel",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1768155684593,
+      "tag": "0002_milky_demogoblin",
+      "breakpoints": true
     }
   ]
 }
