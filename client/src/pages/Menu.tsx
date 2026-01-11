@@ -5,6 +5,7 @@ import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import { ArrowLeft, ShoppingCart, Leaf } from "lucide-react";
 import { toast } from "sonner";
+import ProductCard from "@/components/ProductCard";
 
 type Category = "flower" | "edibles" | "concentrates" | "tinctures" | "topicals" | "accessories";
 
@@ -110,56 +111,11 @@ export default function Menu() {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {products.map((product) => (
-              <div
+              <ProductCard
                 key={product.id}
-                className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-2xl p-6 backdrop-blur-sm hover:border-green-500/50 transition-all duration-300 group"
-              >
-                {/* Product Image Placeholder */}
-                <div className="w-full h-48 bg-gradient-to-br from-green-400/20 to-emerald-400/20 rounded-xl mb-4 flex items-center justify-center group-hover:from-green-400/30 group-hover:to-emerald-400/30 transition-all">
-                  <Leaf className="w-16 h-16 text-green-500/30" />
-                </div>
-
-                {/* Product Info */}
-                <h3 className="text-xl font-bold text-white mb-2">{product.name}</h3>
-
-                {product.strain && (
-                  <p className="text-sm text-green-400 mb-2">Strain: {product.strain}</p>
-                )}
-
-                {product.description && (
-                  <p className="text-gray-300 text-sm mb-4 line-clamp-2">{product.description}</p>
-                )}
-
-                {/* THC/CBD Info */}
-                <div className="flex gap-4 mb-4 text-sm">
-                  {product.thcLevel && (
-                    <div className="bg-green-500/20 rounded px-3 py-1">
-                      <span className="text-green-400">THC: {product.thcLevel}%</span>
-                    </div>
-                  )}
-                  {product.cbdLevel && (
-                    <div className="bg-blue-500/20 rounded px-3 py-1">
-                      <span className="text-blue-400">CBD: {product.cbdLevel}%</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Price and Action */}
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold text-green-400">${product.price}</span>
-                  <Button
-                    onClick={() => handleAddToCart(product.id)}
-                    disabled={product.quantity === 0}
-                    className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
-                  >
-                    <ShoppingCart className="w-4 h-4" />
-                  </Button>
-                </div>
-
-                {product.quantity === 0 && (
-                  <p className="text-red-400 text-sm mt-2">Out of stock</p>
-                )}
-              </div>
+                product={product}
+                onAddToCart={handleAddToCart}
+              />
             ))}
           </div>
         )}

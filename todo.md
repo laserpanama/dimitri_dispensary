@@ -107,3 +107,14 @@
 - [ ] Test all language translations
 - [ ] Ensure RTL support if needed
 - [ ] Add language-specific formatting (dates, currency)
+
+
+## Phase 11: Product Photos & Images
+- [x] Search and download high-quality cannabis product images
+- [x] Upload product images to S3 storage
+- [x] Update product database with image URLs
+- [x] Create product image gallery component
+- [x] Add image lazy loading for performance
+- [ ] Implement product image zoom functionality
+- [x] Add image alt text for accessibility
+- [ ] Test product images on all pages
