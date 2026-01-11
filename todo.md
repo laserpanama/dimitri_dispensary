@@ -94,3 +94,16 @@
 - [ ] Create agent dashboard for managing chats
 - [ ] Add chat notifications for agents
 - [x] Implement chat status indicators (online/offline)
+
+
+## Phase 10: Multi-Language Support (i18n)
+- [x] Install and configure i18n library (react-i18next)
+- [x] Create translation files for English, Spanish, Greek, French, German
+- [x] Translate all UI text and components
+- [ ] Translate product descriptions and categories
+- [ ] Translate blog posts and content
+- [x] Add language switcher component
+- [x] Implement language persistence in localStorage
+- [ ] Test all language translations
+- [ ] Ensure RTL support if needed
+- [ ] Add language-specific formatting (dates, currency)

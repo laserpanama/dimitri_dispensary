@@ -2,12 +2,14 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { AlertCircle } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { useTranslation } from "react-i18next";
 
 interface AgeVerificationModalProps {
   onVerified: () => void;
 }
 
 export default function AgeVerificationModal({ onVerified }: AgeVerificationModalProps) {
+  const { t } = useTranslation();
   const [birthYear, setBirthYear] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -21,14 +23,14 @@ export default function AgeVerificationModal({ onVerified }: AgeVerificationModa
     setError("");
 
     if (!birthYear) {
-      setError("Please enter your birth year");
+      setError(t('ageVerification.error'));
       return;
     }
 
     const year = parseInt(birthYear, 10);
 
     if (isNaN(year) || year < minBirthYear || year > maxBirthYear) {
-      setError("You must be at least 21 years old to access this site");
+      setError(t('ageVerification.error'));
       return;
     }
 
@@ -59,9 +61,9 @@ export default function AgeVerificationModal({ onVerified }: AgeVerificationModa
           <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-100 rounded-full mb-4">
             <AlertCircle className="w-8 h-8 text-amber-600" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Age Verification</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('ageVerification.title')}</h1>
           <p className="text-gray-600">
-            You must be at least 21 years old to access this site
+            {t('ageVerification.description')}
           </p>
         </div>
 
@@ -69,7 +71,7 @@ export default function AgeVerificationModal({ onVerified }: AgeVerificationModa
         <div className="space-y-6">
           <div>
             <label htmlFor="birthYear" className="block text-sm font-semibold text-gray-700 mb-3">
-              What year were you born?
+              {t('ageVerification.question')}
             </label>
             <input
               id="birthYear"
@@ -100,12 +102,11 @@ export default function AgeVerificationModal({ onVerified }: AgeVerificationModa
             disabled={isLoading}
             className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-3 rounded-lg transition-all duration-200"
           >
-            {isLoading ? "Verifying..." : "I Confirm I'm 21+"}
+            {isLoading ? t('common.loading') : t('ageVerification.confirm')}
           </Button>
 
           <p className="text-xs text-gray-500 text-center">
-            This site is intended for adults 21 and older. By clicking the button above, you confirm
-            that you are of legal age to purchase cannabis products.
+            {t('ageVerification.disclaimer')}
           </p>
         </div>
       </div>

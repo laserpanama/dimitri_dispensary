@@ -3,11 +3,14 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { getLoginUrl } from "@/const";
 import AgeVerificationModal from "@/components/AgeVerificationModal";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { Link } from "wouter";
 import { Leaf, ShoppingCart, Calendar, BookOpen, LogOut } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function Home() {
   const { user, loading, isAuthenticated, logout } = useAuth();
+  const { t } = useTranslation();
   const [ageVerified, setAgeVerified] = useState(false);
   const [showAgeModal, setShowAgeModal] = useState(false);
 
@@ -42,9 +45,10 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Leaf className="w-8 h-8 text-green-500" />
-            <h1 className="text-2xl font-bold text-white">Dimitri's Premium Dispensary</h1>
+            <h1 className="text-2xl font-bold text-white">{t('home.title')}</h1>
           </div>
           <div className="flex items-center gap-4">
+            <LanguageSwitcher />
             {isAuthenticated ? (
               <>
                 <span className="text-gray-300 text-sm">{user?.name}</span>
