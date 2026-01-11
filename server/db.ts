@@ -1,7 +1,18 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
-import { ENV } from './_core/env';
+import {
+  InsertUser,
+  users,
+  products,
+  orders,
+  orderItems,
+  appointments,
+  blogPosts,
+  notifications,
+  ageVerifications,
+  userPreferences,
+} from "../drizzle/schema";
+import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -35,7 +46,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     };
     const updateSet: Record<string, unknown> = {};
 
-    const textFields = ["name", "email", "loginMethod"] as const;
+    const textFields = ["name", "email", "phone", "loginMethod"] as const;
     type TextField = (typeof textFields)[number];
 
     const assignNullable = (field: TextField) => {
@@ -56,8 +67,8 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       values.role = user.role;
       updateSet.role = user.role;
     } else if (user.openId === ENV.ownerOpenId) {
-      values.role = 'admin';
-      updateSet.role = 'admin';
+      values.role = "admin";
+      updateSet.role = "admin";
     }
 
     if (!values.lastSignedIn) {
@@ -84,9 +95,152 @@ export async function getUserByOpenId(openId: string) {
     return undefined;
   }
 
-  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+  const result = await db
+    .select()
+    .from(users)
+    .where(eq(users.openId, openId))
+    .limit(1);
 
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+export async function getUserById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function updateUserAgeVerification(userId: number) {
+  const db = await getDb();
+  if (!db) return;
+
+  await db
+    .update(users)
+    .set({ ageVerified: true, ageVerifiedAt: new Date() })
+    .where(eq(users.id, userId));
+}
+
+export async function recordAgeVerification(
+  userId: number | null,
+  ipAddress: string,
+  method: "self_attestation" | "id_verification" = "self_attestation"
+) {
+  const db = await getDb();
+  if (!db) return;
+
+  await db.insert(ageVerifications).values({
+    userId,
+    ipAddress,
+    method,
+  });
+}
+
+export async function getProducts(category?: string) {
+  const db = await getDb();
+  if (!db) return [];
+
+  if (category) {
+    return await db
+      .select()
+      .from(products)
+      .where(eq(products.category, category as any));
+  }
+  return await db.select().from(products);
+}
+
+export async function getProductById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db
+    .select()
+    .from(products)
+    .where(eq(products.id, id))
+    .limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getUserOrders(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(orders).where(eq(orders.userId, userId));
+}
+
+export async function getOrderById(orderId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db
+    .select()
+    .from(orders)
+    .where(eq(orders.id, orderId))
+    .limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getOrderItems(orderId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db
+    .select()
+    .from(orderItems)
+    .where(eq(orderItems.orderId, orderId));
+}
+
+export async function getUserAppointments(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db
+    .select()
+    .from(appointments)
+    .where(eq(appointments.userId, userId));
+}
+
+export async function getPublishedBlogPosts() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db
+    .select()
+    .from(blogPosts)
+    .where(eq(blogPosts.published, true));
+}
+
+export async function getBlogPostBySlug(slug: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db
+    .select()
+    .from(blogPosts)
+    .where(eq(blogPosts.slug, slug))
+    .limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getUserNotifications(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db
+    .select()
+    .from(notifications)
+    .where(eq(notifications.userId, userId));
+}
+
+export async function getUserPreferences(userId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db
+    .select()
+    .from(userPreferences)
+    .where(eq(userPreferences.userId, userId))
+    .limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
