@@ -1,3 +1,13 @@
+﻿// URL validation helper added by fix script
+const ensureValidBaseUrl = (url) => {
+  if (!url) return 'http://localhost:3001';
+  try {
+    return new URL(url).href;
+  } catch {
+    const strUrl = String(url);
+    return strUrl.startsWith('/') ? strUrl : '/' + strUrl;
+  }
+};
 /**
  * Voice transcription helper using internal Speech-to-Text service
  *
@@ -282,3 +292,4 @@ function getLanguageName(langCode: string): string {
  * });
  * ```
  */
+

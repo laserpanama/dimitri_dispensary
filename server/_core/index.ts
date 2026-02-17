@@ -1,3 +1,14 @@
+// Helper function added by fix script - validates base URLs
+const ensureValidBaseUrl = (url) => {
+  if (!url) return typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3001';
+  if (typeof url === 'object' && url.href) return url.href;
+  try {
+    return new URL(url).href;
+  } catch {
+    const strUrl = String(url);
+    return strUrl.startsWith('/') ? strUrl : '/' + strUrl;
+  }
+};
 import "dotenv/config";
 import express from "express";
 import { createServer } from "http";
@@ -63,3 +74,4 @@ async function startServer() {
 }
 
 startServer().catch(console.error);
+

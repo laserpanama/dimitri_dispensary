@@ -1,17 +1,36 @@
-export { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
+﻿export { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 
-// Generate login URL at runtime so redirect URI reflects the current origin.
 export const getLoginUrl = () => {
-  const oauthPortalUrl = import.meta.env.VITE_OAUTH_PORTAL_URL;
-  const appId = import.meta.env.VITE_APP_ID;
-  const redirectUri = `${window.location.origin}/api/oauth/callback`;
-  const state = btoa(redirectUri);
+  try {
+    // Use environment variables or sensible defaults
+    const oauthPortalUrl = import.meta.env.VITE_OAUTH_PORTAL_URL || "http://localhost:3001";
+    const appId = import.meta.env.VITE_APP_ID || "dimitri-dispensary";
+    
+    // Basic validation
+    if (!oauthPortalUrl || !appId) {
+      console.warn("OAuth configuration missing");
+      return "/login";
+    }
 
-  const url = new URL(`${oauthPortalUrl}/app-auth`);
-  url.searchParams.set("appId", appId);
-  url.searchParams.set("redirectUri", redirectUri);
-  url.searchParams.set("state", state);
-  url.searchParams.set("type", "signIn");
+    // Construct redirect URI
+    const redirectUri = `${window.location.origin}/api/oauth/callback`;
+    const state = btoa(redirectUri);
 
-  return url.toString();
+    // Build auth endpoint URL safely
+    const baseUrl = oauthPortalUrl;
+    const authPath = "/app-auth";
+    const separator = baseUrl.endsWith("/") ? "" : "/";
+    const fullUrl = `${baseUrl}${separator}${authPath}`;
+    
+    const url = new URL(fullUrl);
+    url.searchParams.set("appId", appId);
+    url.searchParams.set("redirectUri", redirectUri);
+    url.searchParams.set("state", state);
+    url.searchParams.set("type", "signIn");
+
+    return url.toString();
+  } catch (error) {
+    console.error("Failed to construct login URL:", error);
+    return "/login";
+  }
 };
