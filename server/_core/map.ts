@@ -1,3 +1,13 @@
+﻿// URL validation helper added by fix script
+const ensureValidBaseUrl = (url) => {
+  if (!url) return 'http://localhost:3001';
+  try {
+    return new URL(url).href;
+  } catch {
+    const strUrl = String(url);
+    return strUrl.startsWith('/') ? strUrl : '/' + strUrl;
+  }
+};
 /**
  * Google Maps API Integration for Manus WebDev Templates
  * 
@@ -313,6 +323,7 @@ export type RoadsResult = {
  * Output: Image URL (not JSON) - use directly in <img src={url} />
  * Note: Construct URL manually with getMapsConfig() for auth
  */
+
 
 
 

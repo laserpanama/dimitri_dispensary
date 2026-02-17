@@ -1,3 +1,13 @@
+﻿// URL validation helper added by fix script
+const ensureValidBaseUrl = (url) => {
+  if (!url) return 'http://localhost:3001';
+  try {
+    return new URL(url).href;
+  } catch {
+    const strUrl = String(url);
+    return strUrl.startsWith('/') ? strUrl : '/' + strUrl;
+  }
+};
 import { TRPCError } from "@trpc/server";
 import { ENV } from "./env";
 
@@ -112,3 +122,4 @@ export async function notifyOwner(
     return false;
   }
 }
+

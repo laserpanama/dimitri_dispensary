@@ -1,3 +1,14 @@
+﻿// URL validation helper to prevent "Invalid URL" errors
+const ensureValidBaseUrl = (url) => {
+  if (!url) return "http://localhost:3001";
+  try {
+    return new URL(url).href;
+  } catch {
+    const strUrl = String(url);
+    return strUrl.startsWith("/") ? strUrl : "/" + strUrl;
+  }
+};
+
 // Preconfigured storage helpers for Manus WebDev templates
 // Uses the Biz-provided storage proxy (Authorization: Bearer <token>)
 
@@ -100,3 +111,4 @@ export async function storageGet(relKey: string): Promise<{ key: string; url: st
     url: await buildDownloadUrl(baseUrl, key, apiKey),
   };
 }
+
