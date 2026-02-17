@@ -1,24 +1,8 @@
-﻿# Node / JS
-node_modules/
-dist/
-build/
+﻿node_modules/
 server/_core/public/
-
-# Env files
 .env
-.env.local
 .env.*.local
-
-# Logs
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# OS / Editor
-.DS_Store
-Thumbs.db
 .vscode/
 .idea/
-
-# Optional
 *.sqlite
