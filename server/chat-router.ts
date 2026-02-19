@@ -44,10 +44,11 @@ export const chatRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
+      const senderType = ctx.user.role === "admin" ? "agent" : "customer";
       const messageId = await addChatMessage({
         conversationId: input.conversationId,
         senderId: ctx.user.id,
-        senderType: "customer",
+        senderType,
         message: input.message,
       });
 

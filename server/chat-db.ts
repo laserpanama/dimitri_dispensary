@@ -1,4 +1,4 @@
-import { eq, and } from "drizzle-orm";
+import { eq, and, or } from "drizzle-orm";
 import {
   chatAgents,
   chatConversations,
@@ -19,7 +19,10 @@ export async function getOrCreateConversation(userId: number, subject?: string) 
     .where(
       and(
         eq(chatConversations.userId, userId),
-        eq(chatConversations.status, "active")
+        or(
+          eq(chatConversations.status, "active"),
+          eq(chatConversations.status, "waiting")
+        )
       )
     )
     .limit(1);
@@ -85,7 +88,12 @@ export async function getActiveConversations() {
   return await db
     .select()
     .from(chatConversations)
-    .where(eq(chatConversations.status, "waiting"));
+    .where(
+      or(
+        eq(chatConversations.status, "waiting"),
+        eq(chatConversations.status, "active")
+      )
+    );
 }
 
 export async function assignConversationToAgent(conversationId: number, agentId: number) {
@@ -135,7 +143,7 @@ export async function getOnlineAgents() {
     );
 }
 
-export async function updateAgentStatus(agentId: number, status: "online" | "offline" | "away") {
+export async function updateAgentStatus(userId: number, status: "online" | "offline" | "away") {
   const db = await getDb();
   if (!db) return false;
 
@@ -145,7 +153,7 @@ export async function updateAgentStatus(agentId: number, status: "online" | "off
       status,
       updatedAt: new Date(),
     })
-    .where(eq(chatAgents.id, agentId));
+    .where(eq(chatAgents.userId, userId));
 
   return true;
 }
