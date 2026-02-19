@@ -118,6 +118,21 @@ export default function AdminDashboard() {
               View Analytics
             </Button>
           </div>
+
+          {/* Live Chat Support */}
+          <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-2xl p-8 backdrop-blur-sm hover:border-green-500/50 transition-all">
+            <div className="text-4xl mb-4">💬</div>
+            <h3 className="text-xl font-bold text-white mb-3">Live Support</h3>
+            <p className="text-gray-300 mb-6">Respond to customer chat messages</p>
+            <Link href="/admin/chat">
+              <Button
+                variant="outline"
+                className="w-full border-green-500/50 text-green-400 hover:bg-green-500/10"
+              >
+                Open Chat
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Quick Stats */}

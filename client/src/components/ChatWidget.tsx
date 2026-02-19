@@ -69,6 +69,8 @@ export default function ChatWidget() {
         message: messageText,
       });
 
+      const senderType = user?.role === "admin" ? "agent" : "customer";
+
       // Add user message
       setMessages((prev) => [
         ...prev,
@@ -76,7 +78,7 @@ export default function ChatWidget() {
           id: result.messageId,
           conversationId,
           senderId: user?.id,
-          senderType: "customer",
+          senderType,
           message: messageText,
           createdAt: new Date(),
         },

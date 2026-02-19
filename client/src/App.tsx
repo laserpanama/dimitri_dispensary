@@ -12,6 +12,7 @@ import Appointments from "./pages/Appointments";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import AdminDashboard from "./pages/AdminDashboard";
+import AgentChat from "./pages/AgentChat";
 import OrderHistory from "./pages/OrderHistory";
 
 function Router() {
@@ -25,6 +26,7 @@ function Router() {
       <Route path={"/blog/:slug"} component={BlogPost} />
       <Route path={"/orders"} component={OrderHistory} />
       <Route path={"/admin"} component={AdminDashboard} />
+      <Route path={"/admin/chat"} component={AgentChat} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
