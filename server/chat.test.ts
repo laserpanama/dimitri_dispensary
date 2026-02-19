@@ -35,6 +35,19 @@ vi.mock("./chat-db", () => ({
   getOnlineAgents: vi.fn().mockResolvedValue([]),
   updateAgentStatus: vi.fn().mockResolvedValue(true),
   markMessagesAsRead: vi.fn().mockResolvedValue(true),
+  getConversationById: vi.fn().mockImplementation((id) =>
+    Promise.resolve({
+      id,
+      userId: 1,
+      agentId: null,
+      status: "waiting",
+      subject: "Test",
+      startedAt: new Date(),
+      closedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    })
+  ),
 }));
 
 type AuthenticatedUser = NonNullable<TrpcContext["user"]>;

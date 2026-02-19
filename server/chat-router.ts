@@ -11,6 +11,7 @@ import {
   getOnlineAgents,
   updateAgentStatus,
   markMessagesAsRead,
+  getConversationById,
 } from "./chat-db";
 import { TRPCError } from "@trpc/server";
 import { invokeLLM } from "./_core/llm";
@@ -31,6 +32,14 @@ export const chatRouter = router({
   getMessages: protectedProcedure
     .input(z.object({ conversationId: z.number() }))
     .query(async ({ input, ctx }) => {
+      const conversation = await getConversationById(input.conversationId);
+      if (!conversation) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Conversation not found" });
+      }
+      if (ctx.user.role !== "admin" && conversation.userId !== ctx.user.id) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+      }
+
       const messages = await getConversationMessages(input.conversationId);
       return messages;
     }),
@@ -44,6 +53,14 @@ export const chatRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
+      const conversation = await getConversationById(input.conversationId);
+      if (!conversation) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Conversation not found" });
+      }
+      if (ctx.user.role !== "admin" && conversation.userId !== ctx.user.id) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+      }
+
       const senderType = ctx.user.role === "admin" ? "agent" : "customer";
       const messageId = await addChatMessage({
         conversationId: input.conversationId,
@@ -103,7 +120,15 @@ export const chatRouter = router({
   // Close conversation
   closeConversation: protectedProcedure
     .input(z.object({ conversationId: z.number() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      const conversation = await getConversationById(input.conversationId);
+      if (!conversation) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Conversation not found" });
+      }
+      if (ctx.user.role !== "admin" && conversation.userId !== ctx.user.id) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+      }
+
       const success = await closeConversation(input.conversationId);
       if (!success) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
@@ -114,7 +139,15 @@ export const chatRouter = router({
   // Mark messages as read
   markAsRead: protectedProcedure
     .input(z.object({ conversationId: z.number() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      const conversation = await getConversationById(input.conversationId);
+      if (!conversation) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Conversation not found" });
+      }
+      if (ctx.user.role !== "admin" && conversation.userId !== ctx.user.id) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+      }
+
       const success = await markMessagesAsRead(input.conversationId);
       if (!success) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
