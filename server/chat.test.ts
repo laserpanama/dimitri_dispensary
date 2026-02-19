@@ -1,6 +1,41 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
+
+// Mock the chat-db module since we don't have a real database in the test environment
+vi.mock("./chat-db", () => ({
+  getOrCreateConversation: vi.fn().mockImplementation((userId, subject) =>
+    Promise.resolve({
+      id: 1,
+      userId,
+      agentId: null,
+      status: "waiting",
+      subject,
+      startedAt: new Date(),
+      closedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    })
+  ),
+  getConversationMessages: vi.fn().mockResolvedValue([
+    {
+      id: 1,
+      conversationId: 1,
+      senderId: 1,
+      senderType: "customer",
+      message: "Test message",
+      createdAt: new Date(),
+    },
+  ]),
+  addChatMessage: vi.fn().mockResolvedValue(1),
+  getUserConversations: vi.fn().mockResolvedValue([]),
+  getActiveConversations: vi.fn().mockResolvedValue([]),
+  assignConversationToAgent: vi.fn().mockResolvedValue(true),
+  closeConversation: vi.fn().mockResolvedValue(true),
+  getOnlineAgents: vi.fn().mockResolvedValue([]),
+  updateAgentStatus: vi.fn().mockResolvedValue(true),
+  markMessagesAsRead: vi.fn().mockResolvedValue(true),
+}));
 
 type AuthenticatedUser = NonNullable<TrpcContext["user"]>;
 
