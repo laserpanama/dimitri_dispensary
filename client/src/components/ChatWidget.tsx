@@ -1,15 +1,69 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, memo } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, X, Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
+interface Message {
+  id?: number;
+  conversationId: number;
+  senderId: number;
+  senderType: "customer" | "agent";
+  message: string;
+  createdAt: Date;
+}
+
+/**
+ * Optimized MessageList component that only re-renders when messages change.
+ * This prevents the entire list from re-rendering on every keystroke in the input field.
+ */
+const MessageList = memo(({ messages }: { messages: Message[] }) => {
+  if (messages.length === 0) {
+    return (
+      <div className="text-center text-gray-500 py-8">
+        <MessageCircle className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+        <p>Start a conversation!</p>
+        <p className="text-sm">Ask about products or get recommendations</p>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {messages.map((msg, idx) => (
+        <div
+          key={msg.id || `msg-${idx}`}
+          className={`flex ${msg.senderType === "customer" ? "justify-end" : "justify-start"}`}
+        >
+          <div
+            className={`max-w-xs px-4 py-2 rounded-lg ${
+              msg.senderType === "customer"
+                ? "bg-green-600 text-white rounded-br-none"
+                : "bg-gray-200 text-gray-900 rounded-bl-none"
+            }`}
+          >
+            <p className="text-sm">{msg.message}</p>
+            <p className="text-xs mt-1 opacity-70">
+              {new Date(msg.createdAt).toLocaleTimeString("en-US", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </p>
+          </div>
+        </div>
+      ))}
+    </>
+  );
+});
+
+MessageList.displayName = "MessageList";
+
 export default function ChatWidget() {
   const { user, isAuthenticated } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [conversationId, setConversationId] = useState<number | null>(null);
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -29,7 +83,7 @@ export default function ChatWidget() {
   // Update messages when fetched
   useEffect(() => {
     if (chatMessages) {
-      setMessages(chatMessages);
+      setMessages(chatMessages as Message[]);
     }
   }, [chatMessages]);
 
@@ -70,30 +124,26 @@ export default function ChatWidget() {
       });
 
       // Add user message
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: result.messageId,
-          conversationId,
-          senderId: user?.id,
-          senderType: "customer",
-          message: messageText,
-          createdAt: new Date(),
-        },
-      ]);
+      const userMsg: Message = {
+        id: result.messageId,
+        conversationId,
+        senderId: user?.id || 0,
+        senderType: "customer",
+        message: messageText,
+        createdAt: new Date(),
+      };
+      setMessages((prev) => [...prev, userMsg]);
 
       // Add AI response if available
       if (result.aiResponse) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            conversationId,
-            senderId: 0,
-            senderType: "agent",
-            message: result.aiResponse,
-            createdAt: new Date(),
-          },
-        ]);
+        const aiMsg: Message = {
+          conversationId,
+          senderId: 0,
+          senderType: "agent",
+          message: result.aiResponse,
+          createdAt: new Date(),
+        };
+        setMessages((prev) => [...prev, aiMsg]);
       }
 
       // Refetch messages to ensure sync
@@ -140,36 +190,7 @@ export default function ChatWidget() {
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
-            {messages.length === 0 ? (
-              <div className="text-center text-gray-500 py-8">
-                <MessageCircle className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                <p>Start a conversation!</p>
-                <p className="text-sm">Ask about products or get recommendations</p>
-              </div>
-            ) : (
-              messages.map((msg, idx) => (
-                <div
-                  key={idx}
-                  className={`flex ${msg.senderType === "customer" ? "justify-end" : "justify-start"}`}
-                >
-                  <div
-                    className={`max-w-xs px-4 py-2 rounded-lg ${
-                      msg.senderType === "customer"
-                        ? "bg-green-600 text-white rounded-br-none"
-                        : "bg-gray-200 text-gray-900 rounded-bl-none"
-                    }`}
-                  >
-                    <p className="text-sm">{msg.message}</p>
-                    <p className="text-xs mt-1 opacity-70">
-                      {new Date(msg.createdAt).toLocaleTimeString("en-US", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
-                  </div>
-                </div>
-              ))
-            )}
+            <MessageList messages={messages} />
             <div ref={messagesEndRef} />
           </div>
 
