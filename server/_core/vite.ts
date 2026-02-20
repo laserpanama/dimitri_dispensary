@@ -1,42 +1,39 @@
-import express, { type Express } from "express";
+import path from "path";
 import fs from "fs";
-import { type Server } from "http";
-import { nanoid } from "nanoid";
-import path, { dirname } from "path";
-import { fileURLToPath } from "url";
-const __dirname = dirname(fileURLToPath(import.meta.url));
-import { createServer as createViteServer } from "vite";
-import viteConfig from "../../vite.config";
+import type { Express } from "express";
+import type { Server } from "http";
+import express from "express";
 
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
+
+/**
+ * In development, sets up Vite's dev server middleware.
+ */
 export async function setupVite(app: Express, server: Server) {
-  const serverOptions = {
-    middlewareMode: true,
-    hmr: { server },
-    allowedHosts: true as const,
-  };
+  const { createServer: createViteServer } = await import("vite");
   const vite = await createViteServer({
-    ...viteConfig,
-    configFile: false,
-    server: serverOptions,
+    server: { middlewareMode: true, hmr: { server } },
     appType: "custom",
   });
+
   app.use(vite.middlewares);
-  app.use("*", async (req, res, next) => {
+
+  // Catch‑all for client‑side routing – delegate to Vite
+  // ✅ Use regex to avoid Express 5 path‑to‑regexp issues
+  app.use(/.*/, async (req, res, next) => {
     const url = req.originalUrl;
     try {
-      const clientTemplate = path.resolve(
-        __dirname,
-        "../..",
-        "client",
-        "index.html"
+      let template = fs.readFileSync(
+        path.resolve(__dirname, "../../client/index.html"),
+        "utf-8"
       );
-      let template = await fs.promises.readFile(clientTemplate, "utf-8");
-      template = template.replace(
-        `src="/src/main.tsx"`,
-        `src="/src/main.tsx?v=${nanoid()}"`
+      template = await vite.transformIndexHtml(url, template);
+      const { render } = await vite.ssrLoadModule(
+        path.resolve(__dirname, "../../client/src/entry-server.tsx")
       );
-      const page = await vite.transformIndexHtml(url, template);
-      res.status(200).set({ "Content-Type": "text/html" }).end(page);
+      const { html: appHtml } = await render(url);
+      const html = template.replace("<!--ssr-outlet-->", appHtml);
+      res.status(200).set({ "Content-Type": "text/html" }).end(html);
     } catch (e) {
       vite.ssrFixStacktrace(e as Error);
       next(e);
@@ -44,26 +41,25 @@ export async function setupVite(app: Express, server: Server) {
   });
 }
 
+/**
+ * In production, serves the built static files.
+ */
 export function serveStatic(app: Express) {
-  // In production, esbuild outputs index.ts â†’ dist/index.js, so
-  // __dirname = dist/  â†’  dist/public is the Vite build output.
-  // In development, resolve from the project root instead.
-  const distPath =
-    process.env.NODE_ENV === "production"
-      ? path.resolve(__dirname, "public")        // dist/public âœ“
-      : path.resolve(__dirname, "../..", "dist", "public"); // dev fallback
+  // ✅ Correct path: server runs in /app, static files are in /app/dist/public
+  const distPath = path.join(__dirname, "public");
 
   if (!fs.existsSync(distPath)) {
-    console.error(
-      `Build directory not found: ${distPath}\n` +
-        `Run "pnpm build" first, then restart the server.`
+    throw new Error(
+      `Could not find the build directory: ${distPath}, make sure to build the client first`
     );
   }
 
+  // Serve static assets
   app.use(express.static(distPath));
 
-  // Fall through to index.html for client-side routing
-  app.use("*", (_req, res) => {
-    res.sendFile(path.resolve(distPath, "index.html"));
+  // All unmatched requests go to index.html – client‑side routing
+  // ✅ Use regex to avoid Express 5 path‑to‑regexp issues
+  app.use(/.*/, (_req, res) => {
+    res.sendFile(path.join(distPath, "index.html"));
   });
 }
