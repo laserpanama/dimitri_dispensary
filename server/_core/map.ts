@@ -1,5 +1,5 @@
 ﻿// URL validation helper added by fix script
-const ensureValidBaseUrl = (url) => {
+const ensureValidBaseUrl = (url: any) => {
   if (!url) return 'http://localhost:3001';
   try {
     return new URL(url).href;
