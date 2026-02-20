@@ -2,7 +2,9 @@ import express, { type Express } from "express";
 import fs from "fs";
 import { type Server } from "http";
 import { nanoid } from "nanoid";
-import path from "path";
+import path, { dirname } from "path";
+import { fileURLToPath } from "url";
+const __dirname = dirname(fileURLToPath(import.meta.url));
 import { createServer as createViteServer } from "vite";
 import viteConfig from "../../vite.config";
 
@@ -23,7 +25,7 @@ export async function setupVite(app: Express, server: Server) {
     const url = req.originalUrl;
     try {
       const clientTemplate = path.resolve(
-        import.meta.dirname,
+        __dirname,
         "../..",
         "client",
         "index.html"
@@ -43,13 +45,13 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  // In production, esbuild outputs index.ts → dist/index.js, so
-  // import.meta.dirname = dist/  →  dist/public is the Vite build output.
+  // In production, esbuild outputs index.ts â†’ dist/index.js, so
+  // __dirname = dist/  â†’  dist/public is the Vite build output.
   // In development, resolve from the project root instead.
   const distPath =
     process.env.NODE_ENV === "production"
-      ? path.resolve(import.meta.dirname, "public")        // dist/public ✓
-      : path.resolve(import.meta.dirname, "../..", "dist", "public"); // dev fallback
+      ? path.resolve(__dirname, "public")        // dist/public âœ“
+      : path.resolve(__dirname, "../..", "dist", "public"); // dev fallback
 
   if (!fs.existsSync(distPath)) {
     console.error(
