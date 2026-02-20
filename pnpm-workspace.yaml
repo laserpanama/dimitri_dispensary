@@ -1,2 +1,8 @@
+packages:
+  - "client"
+  - "server"
+  - "server_core"
+  - "shared"
+
 onlyBuiltDependencies:
   - esbuild
