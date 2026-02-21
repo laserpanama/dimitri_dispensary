@@ -3,6 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { chatRouter } from "./chat-router";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
+import { inArray } from "drizzle-orm";
 import { z } from "zod";
 import {
   recordAgeVerification,
@@ -19,7 +20,14 @@ import {
   getUserPreferences,
   getDb,
 } from "./db";
-import { orders, orderItems, appointments, blogPosts, notifications } from "../drizzle/schema";
+import {
+  orders,
+  orderItems,
+  products,
+  appointments,
+  blogPosts,
+  notifications,
+} from "../drizzle/schema";
 import { TRPCError } from "@trpc/server";
 
 export const appRouter = router({
@@ -115,50 +123,79 @@ export const appRouter = router({
         const db = await getDb();
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
-        let totalPrice = 0;
-        const itemsData = [];
-
-        for (const item of input.items) {
-          const product = await getProductById(item.productId);
-          if (!product) {
-            throw new TRPCError({ code: "NOT_FOUND", message: `Product ${item.productId} not found` });
-          }
-          if (product.quantity < item.quantity) {
-            throw new TRPCError({ code: "BAD_REQUEST", message: `Insufficient stock for ${product.name}` });
+        // Optimize: Use a single transaction for all operations
+        return await db.transaction(async (tx) => {
+          // Optimize: Fetch all products in a single query instead of a loop
+          const productIds = input.items
+            .map((item) => item.productId)
+            .filter((value, index, self) => self.indexOf(value) === index);
+          if (productIds.length === 0) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "Order must contain items" });
           }
 
-          const itemTotal = parseFloat(product.price) * item.quantity;
-          totalPrice += itemTotal;
-          itemsData.push({
-            productId: item.productId,
-            quantity: item.quantity,
-            priceAtPurchase: product.price,
+          const dbProducts = await tx
+            .select()
+            .from(products)
+            .where(inArray(products.id, productIds));
+
+          const productMap = new Map(dbProducts.map((p) => [p.id, p]));
+
+          let totalPrice = 0;
+          const itemsData = [];
+
+          // Perform validations and calculate total price in-memory
+          for (const item of input.items) {
+            const product = productMap.get(item.productId);
+            if (!product) {
+              throw new TRPCError({
+                code: "NOT_FOUND",
+                message: `Product ${item.productId} not found`,
+              });
+            }
+            if (product.quantity < item.quantity) {
+              throw new TRPCError({
+                code: "BAD_REQUEST",
+                message: `Insufficient stock for ${product.name}`,
+              });
+            }
+
+            const itemTotal = parseFloat(product.price) * item.quantity;
+            totalPrice += itemTotal;
+            itemsData.push({
+              productId: item.productId,
+              quantity: item.quantity,
+              priceAtPurchase: product.price,
+            });
+          }
+
+          const orderNumber = `ORD-${Date.now()}`;
+          const estimatedReadyTime = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours from now
+
+          // Optimize: Single insert for the order
+          const result = await tx.insert(orders).values({
+            userId: ctx.user.id,
+            orderNumber,
+            status: "pending",
+            fulfillmentType: input.fulfillmentType,
+            totalPrice: totalPrice.toFixed(2), // Ensure consistent decimal format
+            estimatedReadyTime,
+            deliveryAddress: input.deliveryAddress,
           });
-        }
 
-        const orderNumber = `ORD-${Date.now()}`;
-        const estimatedReadyTime = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours from now
+          const orderId = (result as any).insertId;
 
-        const result = await db.insert(orders).values({
-          userId: ctx.user.id,
-          orderNumber,
-          status: "pending",
-          fulfillmentType: input.fulfillmentType,
-          totalPrice: totalPrice.toString(),
-          estimatedReadyTime,
-          deliveryAddress: input.deliveryAddress,
+          // Optimize: Bulk insert for order items instead of individual inserts in a loop
+          if (itemsData.length > 0) {
+            await tx.insert(orderItems).values(
+              itemsData.map((item) => ({
+                orderId: orderId as number,
+                ...item,
+              }))
+            );
+          }
+
+          return { orderId, orderNumber, estimatedReadyTime };
         });
-
-        const orderId = (result as any).insertId;
-
-        for (const item of itemsData) {
-          await db.insert(orderItems).values({
-            orderId: orderId as number,
-            ...item,
-          });
-        }
-
-        return { orderId, orderNumber, estimatedReadyTime };
       }),
   }),
 
