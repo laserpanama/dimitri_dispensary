@@ -126,7 +126,9 @@ export const appRouter = router({
         // Optimize: Use a single transaction for all operations
         return await db.transaction(async (tx) => {
           // Optimize: Fetch all products in a single query instead of a loop
-          const productIds = [...new Set(input.items.map((item) => item.productId))];
+          const productIds = input.items
+            .map((item) => item.productId)
+            .filter((value, index, self) => self.indexOf(value) === index);
           if (productIds.length === 0) {
             throw new TRPCError({ code: "BAD_REQUEST", message: "Order must contain items" });
           }
