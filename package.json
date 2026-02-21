@@ -17,6 +17,7 @@
   "devDependencies": {
     "@builder.io/vite-plugin-jsx-loc": "^0.1.1",
     "@tailwindcss/vite": "^4.2.0",
+    "@types/node": "^20.19.33",
     "@types/cookie": "^1.0.0",
     "@types/cookie-parser": "^1.4.10",
     "@types/dotenv": "^8.2.3",
@@ -28,6 +29,7 @@
     "drizzle-kit": "^0.31.9",
     "esbuild": "^0.27.3",
     "tailwindcss": "^4.2.0",
+    "vitest": "^3.0.0",
     "typescript": "^5.9.3",
     "vite": "^7.3.1"
   },
