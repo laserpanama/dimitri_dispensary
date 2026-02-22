@@ -1,5 +1,5 @@
 ﻿// URL validation helper to prevent "Invalid URL" errors
-const ensureValidBaseUrl = (url) => {
+const ensureValidBaseUrl = (url: string | undefined | null) => {
   if (!url) return "http://localhost:3001";
   try {
     return new URL(url).href;

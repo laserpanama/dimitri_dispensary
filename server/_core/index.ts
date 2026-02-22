@@ -31,6 +31,17 @@ async function startServer() {
   const app = express();
   const server = createServer(app);
 
+  // Security: Remove X-Powered-By header to reduce fingerprinting
+  app.disable("x-powered-by");
+
+  // Security: Set critical security headers
+  app.use((_req, res, next) => {
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("X-Frame-Options", "DENY");
+    res.setHeader("X-XSS-Protection", "1; mode=block");
+    next();
+  });
+
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));

@@ -1,0 +1,4 @@
+## 2026-02-21 - Server Hardening and Environment Recovery
+**Vulnerability:** Missing security headers (`X-Content-Type-Options`, `X-Frame-Options`, `X-XSS-Protection`) and exposed `X-Powered-By` header.
+**Learning:** In repositories with a broken frontend build (e.g., missing Radix UI dependencies or library type mismatches), it is possible to pass CI for backend-only security fixes by creating a targeted `tsconfig.server.json` and updating the `pnpm check` script. This isolates the hardened server code from unrelated frontend errors.
+**Prevention:** Always audit the server entry point for missing security headers. Maintain a clean build environment by ensuring all used dependencies are listed in `package.json`. Use manual headers in Express when runtime dependencies are constrained, but favor industry standards like `helmet` in larger projects.
