@@ -28,8 +28,9 @@ export default function LanguageSwitcher() {
           variant="outline"
           size="sm"
           className="flex items-center gap-2 bg-white hover:bg-gray-100 text-gray-900"
+          aria-label={`Current language: ${currentLanguage.name}`}
         >
-          <Globe className="w-4 h-4" />
+          <Globe className="w-4 h-4" aria-hidden="true" />
           <span className="text-sm font-medium">{currentLanguage.flag} {currentLanguage.name}</span>
         </Button>
       </DropdownMenuTrigger>
