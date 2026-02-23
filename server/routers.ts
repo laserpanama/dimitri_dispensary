@@ -9,6 +9,7 @@ import {
   updateUserAgeVerification,
   getProducts,
   getProductById,
+  getProductsByIds,
   getUserOrders,
   getOrderById,
   getOrderItems,
@@ -115,21 +116,33 @@ export const appRouter = router({
         const db = await getDb();
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
-        let totalPrice = 0;
-        const itemsData = [];
+        // Optimization: Fetch all products in a single query
+        const productIds = input.items.map((i) => i.productId);
+        const allProducts = await getProductsByIds(productIds);
+        const productMap = new Map(allProducts.map((p) => [p.id, p]));
 
+        let totalPrice = 0;
+        const itemsToInsert: any[] = [];
+
+        // Validate all products and calculate total price
         for (const item of input.items) {
-          const product = await getProductById(item.productId);
+          const product = productMap.get(item.productId);
           if (!product) {
-            throw new TRPCError({ code: "NOT_FOUND", message: `Product ${item.productId} not found` });
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: `Product ${item.productId} not found`,
+            });
           }
           if (product.quantity < item.quantity) {
-            throw new TRPCError({ code: "BAD_REQUEST", message: `Insufficient stock for ${product.name}` });
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: `Insufficient stock for ${product.name}`,
+            });
           }
 
           const itemTotal = parseFloat(product.price) * item.quantity;
           totalPrice += itemTotal;
-          itemsData.push({
+          itemsToInsert.push({
             productId: item.productId,
             quantity: item.quantity,
             priceAtPurchase: product.price,
@@ -137,28 +150,34 @@ export const appRouter = router({
         }
 
         const orderNumber = `ORD-${Date.now()}`;
-        const estimatedReadyTime = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours from now
+        const estimatedReadyTime = new Date(Date.now() + 2 * 60 * 60 * 1000);
 
-        const result = await db.insert(orders).values({
-          userId: ctx.user.id,
-          orderNumber,
-          status: "pending",
-          fulfillmentType: input.fulfillmentType,
-          totalPrice: totalPrice.toString(),
-          estimatedReadyTime,
-          deliveryAddress: input.deliveryAddress,
-        });
-
-        const orderId = (result as any).insertId;
-
-        for (const item of itemsData) {
-          await db.insert(orderItems).values({
-            orderId: orderId as number,
-            ...item,
+        // Use a transaction for atomicity and better performance
+        return await db.transaction(async (tx) => {
+          const result = await tx.insert(orders).values({
+            userId: ctx.user.id,
+            orderNumber,
+            status: "pending",
+            fulfillmentType: input.fulfillmentType,
+            totalPrice: totalPrice.toString(),
+            estimatedReadyTime,
+            deliveryAddress: input.deliveryAddress,
           });
-        }
 
-        return { orderId, orderNumber, estimatedReadyTime };
+          const orderId = (result as any).insertId;
+
+          // Optimization: Bulk insert all order items in a single query
+          if (itemsToInsert.length > 0) {
+            await tx.insert(orderItems).values(
+              itemsToInsert.map((item) => ({
+                ...item,
+                orderId: orderId as number,
+              }))
+            );
+          }
+
+          return { orderId, orderNumber, estimatedReadyTime };
+        });
       }),
   }),
 
