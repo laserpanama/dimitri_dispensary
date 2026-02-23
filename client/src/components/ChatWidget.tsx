@@ -4,6 +4,11 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, X, Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function ChatWidget() {
   const { user, isAuthenticated } = useAuth();
@@ -13,6 +18,7 @@ export default function ChatWidget() {
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const startConversationMutation = trpc.chat.startConversation.useMutation();
   const sendMessageMutation = trpc.chat.sendMessage.useMutation();
@@ -25,6 +31,17 @@ export default function ChatWidget() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Auto-focus input when chat opens
+  useEffect(() => {
+    if (isOpen) {
+      // Small timeout to ensure the element is rendered and visible
+      const timer = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
   // Update messages when fetched
   useEffect(() => {
@@ -113,13 +130,18 @@ export default function ChatWidget() {
   return (
     <>
       {/* Chat Widget Button */}
-      <button
-        onClick={handleOpenChat}
-        className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-300 hover:scale-110"
-        title="Open chat"
-      >
-        <MessageCircle className="w-6 h-6" />
-      </button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            onClick={handleOpenChat}
+            className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-300 hover:scale-110"
+            aria-label="Open chat"
+          >
+            <MessageCircle className="w-6 h-6" aria-hidden="true" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="left">Open support chat</TooltipContent>
+      </Tooltip>
 
       {/* Chat Window */}
       {isOpen && (
@@ -130,12 +152,18 @@ export default function ChatWidget() {
               <h3 className="font-bold">Dimitri's Support</h3>
               <p className="text-sm text-green-100">We're here to help!</p>
             </div>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="p-1 hover:bg-green-700 rounded-lg transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="p-1 hover:bg-green-700 rounded-lg transition-colors"
+                  aria-label="Close chat"
+                >
+                  <X className="w-5 h-5" aria-hidden="true" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Close chat</TooltipContent>
+            </Tooltip>
           </div>
 
           {/* Messages */}
@@ -177,25 +205,33 @@ export default function ChatWidget() {
           <div className="border-t border-gray-200 p-4 bg-white">
             <div className="flex gap-2">
               <input
+                ref={inputRef}
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
                 placeholder="Type your message..."
                 disabled={isLoading}
+                aria-label="Chat message"
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
               />
-              <button
-                onClick={handleSendMessage}
-                disabled={isLoading || !inputMessage.trim()}
-                className="p-2 bg-green-600 hover:bg-green-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {isLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Send className="w-4 h-4" />
-                )}
-              </button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={handleSendMessage}
+                    disabled={isLoading || !inputMessage.trim()}
+                    aria-label="Send message"
+                    className="p-2 bg-green-600 hover:bg-green-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {isLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                    ) : (
+                      <Send className="w-4 h-4" aria-hidden="true" />
+                    )}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>Send message</TooltipContent>
+              </Tooltip>
             </div>
             <p className="text-xs text-gray-500 mt-2">
               💡 Ask about products or get personalized recommendations!
