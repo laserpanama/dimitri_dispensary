@@ -25,6 +25,7 @@ function createAuthContext(role: "user" | "admin" = "user"): {
     user,
     req: {
       protocol: "https",
+      ip: "192.168.1.1",
       headers: {
         "x-forwarded-for": "192.168.1.1",
       },
@@ -42,6 +43,7 @@ function createPublicContext(): { ctx: TrpcContext } {
     user: null,
     req: {
       protocol: "https",
+      ip: "192.168.1.1",
       headers: {
         "x-forwarded-for": "192.168.1.1",
       },
@@ -59,9 +61,7 @@ describe("Age Verification", () => {
     const { ctx } = createPublicContext();
     const caller = appRouter.createCaller(ctx);
 
-    const result = await caller.ageVerification.verify({
-      ipAddress: "192.168.1.1",
-    });
+    const result = await caller.ageVerification.verify();
 
     expect(result).toEqual({ success: true });
   });
@@ -70,7 +70,7 @@ describe("Age Verification", () => {
     const { ctx } = createAuthContext();
     const caller = appRouter.createCaller(ctx);
 
-    const result = await caller.ageVerification.verify({});
+    const result = await caller.ageVerification.verify();
 
     expect(result).toEqual({ success: true });
   });
