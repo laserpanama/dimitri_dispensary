@@ -1,4 +1,9 @@
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { ShoppingCart, Leaf } from "lucide-react";
 import { Product } from "@shared/types";
 
@@ -54,13 +59,19 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
       {/* Price and Action */}
       <div className="flex items-center justify-between mt-auto">
         <span className="text-2xl font-bold text-green-400">${product.price}</span>
-        <Button
-          onClick={() => onAddToCart(product.id)}
-          disabled={product.quantity === 0}
-          className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
-        >
-          <ShoppingCart className="w-4 h-4" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              onClick={() => onAddToCart(product.id)}
+              disabled={product.quantity === 0}
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+              aria-label={`Add ${product.name} to cart`}
+            >
+              <ShoppingCart className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Add to cart</TooltipContent>
+        </Tooltip>
       </div>
 
       {product.quantity === 0 && <p className="text-red-400 text-sm mt-2">Out of stock</p>}

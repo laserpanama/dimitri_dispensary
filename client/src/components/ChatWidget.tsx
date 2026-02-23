@@ -2,6 +2,11 @@ import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { MessageCircle, X, Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -113,13 +118,18 @@ export default function ChatWidget() {
   return (
     <>
       {/* Chat Widget Button */}
-      <button
-        onClick={handleOpenChat}
-        className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-300 hover:scale-110"
-        title="Open chat"
-      >
-        <MessageCircle className="w-6 h-6" />
-      </button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            onClick={handleOpenChat}
+            className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-300 hover:scale-110"
+            aria-label="Open support chat"
+          >
+            <MessageCircle className="w-6 h-6" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="left">Open support chat</TooltipContent>
+      </Tooltip>
 
       {/* Chat Window */}
       {isOpen && (
@@ -130,12 +140,18 @@ export default function ChatWidget() {
               <h3 className="font-bold">Dimitri's Support</h3>
               <p className="text-sm text-green-100">We're here to help!</p>
             </div>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="p-1 hover:bg-green-700 rounded-lg transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="p-1 hover:bg-green-700 rounded-lg transition-colors"
+                  aria-label="Close chat"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Close chat</TooltipContent>
+            </Tooltip>
           </div>
 
           {/* Messages */}
@@ -185,17 +201,23 @@ export default function ChatWidget() {
                 disabled={isLoading}
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
               />
-              <button
-                onClick={handleSendMessage}
-                disabled={isLoading || !inputMessage.trim()}
-                className="p-2 bg-green-600 hover:bg-green-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {isLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Send className="w-4 h-4" />
-                )}
-              </button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={handleSendMessage}
+                    disabled={isLoading || !inputMessage.trim()}
+                    className="p-2 bg-green-600 hover:bg-green-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    aria-label="Send message"
+                  >
+                    {isLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Send className="w-4 h-4" />
+                    )}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>Send message</TooltipContent>
+              </Tooltip>
             </div>
             <p className="text-xs text-gray-500 mt-2">
               💡 Ask about products or get personalized recommendations!
