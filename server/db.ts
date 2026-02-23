@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertUser,
@@ -160,6 +160,13 @@ export async function getProductById(id: number) {
     .where(eq(products.id, id))
     .limit(1);
   return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getProductsByIds(ids: number[]) {
+  const db = await getDb();
+  if (!db || ids.length === 0) return [];
+
+  return await db.select().from(products).where(inArray(products.id, ids));
 }
 
 export async function getUserOrders(userId: number) {
