@@ -31,7 +31,6 @@ A full-stack web application for a premium cannabis dispensary, featuring produc
 ### Tools & DevOps
 - **Vitest:** Unit and integration testing.
 - **Playwright:** End-to-end verification.
-- **Datadog Synthetics:** Monitoring and testing (CI integrated).
 - **TypeScript:** Ensuring code quality and maintainability.
 
 ## Getting Started

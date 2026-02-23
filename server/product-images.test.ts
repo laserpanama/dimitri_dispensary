@@ -1,34 +1,31 @@
 import { describe, expect, it } from "vitest";
 
 describe("Product Images", () => {
-  it("should have image URLs for all products", () => {
+  it("should have local image paths for all products", () => {
     const productImages: Record<number, string> = {
-      1: "https://images.unsplash.com/photo-1599599810694-b5ac4dd37e58?w=500&h=500&fit=crop",
-      2: "https://images.unsplash.com/photo-1599599810694-b5ac4dd37e58?w=500&h=500&fit=crop",
-      3: "https://images.unsplash.com/photo-1599599810694-b5ac4dd37e58?w=500&h=500&fit=crop",
-      4: "https://images.unsplash.com/photo-1599599810694-b5ac4dd37e58?w=500&h=500&fit=crop",
-      5: "https://images.unsplash.com/photo-1599599810694-b5ac4dd37e58?w=500&h=500&fit=crop",
-      6: "https://images.unsplash.com/photo-1599599810694-b5ac4dd37e58?w=500&h=500&fit=crop",
-      7: "https://images.unsplash.com/photo-1599599810694-b5ac4dd37e58?w=500&h=500&fit=crop",
-      8: "https://images.unsplash.com/photo-1599599810694-b5ac4dd37e58?w=500&h=500&fit=crop",
-      9: "https://images.unsplash.com/photo-1599599810694-b5ac4dd37e58?w=500&h=500&fit=crop",
-      10: "https://images.unsplash.com/photo-1599599810694-b5ac4dd37e58?w=500&h=500&fit=crop",
-      11: "https://images.unsplash.com/photo-1599599810694-b5ac4dd37e58?w=500&h=500&fit=crop",
-      12: "https://images.unsplash.com/photo-1599599810694-b5ac4dd37e58?w=500&h=500&fit=crop",
+      1: "/images/products/01_Gummies_FullSpectrum_Citrus.png",
+      2: "/images/products/02_Gummies_FullSpectrum_BlueRazberry.png",
+      3: "/images/products/03_Gummies_FullSpectrum_MixedBerry.png",
+      4: "/images/products/04_Gummies_FullSpectrum_Strawberry-1.png",
+      5: "/images/products/05_Gummies_Isolate_Citrus.png",
+      6: "/images/products/06_Gummies_Isolate_MixedBerry.png",
+      7: "/images/products/07_Gummies_CBNSleepAid_Citrus.png",
+      8: "/images/products/08_Gummies_CBNSleepAid_BlueRazberry.png",
+      10: "/images/products/10_Softgels_FullSpectrum_30mg.png",
+      11: "/images/products/11_Softgels_Isolate_30mg.png",
     };
 
-    expect(Object.keys(productImages)).toHaveLength(12);
+    expect(Object.keys(productImages)).toHaveLength(10);
     Object.values(productImages).forEach((url) => {
       expect(url).toBeTruthy();
-      expect(url).toMatch(/^https:\/\//);
+      expect(url).toMatch(/^\/images\/products\//);
     });
   });
 
-  it("should have valid image URLs", () => {
-    const imageUrl = "https://images.unsplash.com/photo-1599599810694-b5ac4dd37e58?w=500&h=500&fit=crop";
-    expect(imageUrl).toContain("unsplash");
-    expect(imageUrl).toContain("w=500");
-    expect(imageUrl).toContain("h=500");
+  it("should have valid local image paths", () => {
+    const imageUrl = "/images/products/01_Gummies_FullSpectrum_Citrus.png";
+    expect(imageUrl).toContain("products");
+    expect(imageUrl).toContain(".png");
   });
 
   it("should support lazy loading for performance", () => {
@@ -58,15 +55,6 @@ describe("Product Images", () => {
   it("should display fallback placeholder when image is missing", () => {
     const hasPlaceholder = true;
     expect(hasPlaceholder).toBe(true);
-  });
-
-  it("should optimize images for different screen sizes", () => {
-    const imageSizes = ["w=500&h=500", "w=1000&h=1000", "w=200&h=200"];
-    expect(imageSizes.length).toBeGreaterThan(0);
-    imageSizes.forEach((size) => {
-      expect(size).toContain("w=");
-      expect(size).toContain("h=");
-    });
   });
 
   it("should maintain aspect ratio for product images", () => {

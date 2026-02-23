@@ -137,9 +137,53 @@ export async function recordAgeVerification(
   });
 }
 
+const MOCK_PRODUCTS = [
+  {
+    id: 1,
+    name: "Citrus Gummies",
+    description: "Full spectrum citrus flavored gummies for daily wellness.",
+    price: "45.00",
+    category: "edibles",
+    image: "/images/products/01_Gummies_FullSpectrum_Citrus.png",
+    featured: true,
+  },
+  {
+    id: 2,
+    name: "Full Spectrum Softgels",
+    description: "Easy-to-take 30mg softgels for consistent dosing.",
+    price: "50.00",
+    category: "edibles",
+    image: "/images/products/10_Softgels_FullSpectrum_30mg.png",
+    featured: true,
+  },
+  {
+    id: 3,
+    name: "CBD Tincture",
+    description: "High-quality 30mg full spectrum tincture.",
+    price: "25.00",
+    category: "tinctures",
+    image: "/images/products/13_Tincture_FullSpectrum_30mg.png",
+    featured: false,
+  },
+  {
+    id: 4,
+    name: "Soothing Salve",
+    description: "900mg full spectrum salve for topical application.",
+    price: "35.00",
+    category: "topicals",
+    image: "/images/products/17_Salve_FullSpectrum_900mg.png",
+    featured: false,
+  },
+];
+
 export async function getProducts(category?: string) {
   const db = await getDb();
-  if (!db) return [];
+  if (!db) {
+    if (category) {
+      return MOCK_PRODUCTS.filter((p) => p.category === category);
+    }
+    return MOCK_PRODUCTS;
+  }
 
   if (category) {
     return await db
