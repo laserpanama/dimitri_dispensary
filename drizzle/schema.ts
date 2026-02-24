@@ -8,6 +8,7 @@ import {
   decimal,
   boolean,
   json,
+  index,
 } from "drizzle-orm/mysql-core";
 
 /**
@@ -57,7 +58,11 @@ export const products = mysqlTable("products", {
   active: boolean("active").default(true).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  // Optimization: Index on category for faster filtering in Menu page
+  // Impact: Reduces O(N) full table scan to O(log N) index lookup
+  categoryIdx: index("products_category_idx").on(table.category),
+}));
 
 export type Product = typeof products.$inferSelect;
 export type InsertProduct = typeof products.$inferInsert;
@@ -85,7 +90,11 @@ export const orders = mysqlTable("orders", {
   notes: text("notes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  // Optimization: Index on userId for faster retrieval of customer order history
+  // Impact: Critical for performance as order volume grows per user
+  userIdIdx: index("orders_userId_idx").on(table.userId),
+}));
 
 export type Order = typeof orders.$inferSelect;
 export type InsertOrder = typeof orders.$inferInsert;
@@ -100,7 +109,12 @@ export const orderItems = mysqlTable("orderItems", {
   quantity: int("quantity").notNull(),
   priceAtPurchase: decimal("priceAtPurchase", { precision: 10, scale: 2 }).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (table) => ({
+  // Optimization: Indexes on foreign keys for faster join-like operations and item retrieval
+  // Impact: Accelerates order detail lookups by orderId and product reporting by productId
+  orderIdIdx: index("orderItems_orderId_idx").on(table.orderId),
+  productIdIdx: index("orderItems_productId_idx").on(table.productId),
+}));
 
 export type OrderItem = typeof orderItems.$inferSelect;
 export type InsertOrderItem = typeof orderItems.$inferInsert;
@@ -130,7 +144,10 @@ export const appointments = mysqlTable("appointments", {
   ]).default("initial_consultation").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  // Optimization: Index on userId for customer appointment history lookups
+  userIdIdx: index("appointments_userId_idx").on(table.userId),
+}));
 
 export type Appointment = typeof appointments.$inferSelect;
 export type InsertAppointment = typeof appointments.$inferInsert;
@@ -182,7 +199,12 @@ export const notifications = mysqlTable("notifications", {
   relatedAppointmentId: int("relatedAppointmentId"),
   read: boolean("read").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (table) => ({
+  // Optimization: Indexes on userId and related IDs for faster filtering and relationship lookups
+  userIdIdx: index("notifications_userId_idx").on(table.userId),
+  relatedOrderIdIdx: index("notifications_relatedOrderId_idx").on(table.relatedOrderId),
+  relatedAppointmentIdIdx: index("notifications_relatedAppointmentId_idx").on(table.relatedAppointmentId),
+}));
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = typeof notifications.$inferInsert;
@@ -246,7 +268,11 @@ export const chatConversations = mysqlTable("chatConversations", {
   closedAt: timestamp("closedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  // Optimization: Indexes on userId and agentId for faster conversation retrieval
+  userIdIdx: index("chatConversations_userId_idx").on(table.userId),
+  agentIdIdx: index("chatConversations_agentId_idx").on(table.agentId),
+}));
 
 export type ChatConversation = typeof chatConversations.$inferSelect;
 export type InsertChatConversation = typeof chatConversations.$inferInsert;
@@ -263,7 +289,10 @@ export const chatMessages = mysqlTable("chatMessages", {
   attachmentUrl: varchar("attachmentUrl", { length: 500 }),
   isRead: boolean("isRead").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (table) => ({
+  // Optimization: Index on conversationId for faster message loading in chat UI
+  conversationIdIdx: index("chatMessages_conversationId_idx").on(table.conversationId),
+}));
 
 export type ChatMessage = typeof chatMessages.$inferSelect;
 export type InsertChatMessage = typeof chatMessages.$inferInsert;
