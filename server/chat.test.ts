@@ -73,6 +73,7 @@ function createAuthContext(role: "user" | "admin" = "user"): {
     user,
     req: {
       protocol: "https",
+      ip: "192.168.1.1",
       headers: {
         "x-forwarded-for": "192.168.1.1",
       },
@@ -90,6 +91,7 @@ function createPublicContext(): { ctx: TrpcContext } {
     user: null,
     req: {
       protocol: "https",
+      ip: "192.168.1.1",
       headers: {
         "x-forwarded-for": "192.168.1.1",
       },
