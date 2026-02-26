@@ -1,3 +1,8 @@
+/**
+ * ⚡ Bolt Optimization: Database indexes for frequently queried columns.
+ * These indexes improve performance for lookups, joins, and filtering on foreign keys
+ * and high-cardinality columns (e.g., product categories).
+ */
 import {
   int,
   mysqlEnum,
@@ -8,6 +13,7 @@ import {
   decimal,
   boolean,
   json,
+  index,
 } from "drizzle-orm/mysql-core";
 
 /**
@@ -57,7 +63,9 @@ export const products = mysqlTable("products", {
   active: boolean("active").default(true).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  categoryIdx: index("products_category_idx").on(table.category),
+}));
 
 export type Product = typeof products.$inferSelect;
 export type InsertProduct = typeof products.$inferInsert;
@@ -85,7 +93,9 @@ export const orders = mysqlTable("orders", {
   notes: text("notes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  userIdIdx: index("orders_user_id_idx").on(table.userId),
+}));
 
 export type Order = typeof orders.$inferSelect;
 export type InsertOrder = typeof orders.$inferInsert;
@@ -100,7 +110,10 @@ export const orderItems = mysqlTable("orderItems", {
   quantity: int("quantity").notNull(),
   priceAtPurchase: decimal("priceAtPurchase", { precision: 10, scale: 2 }).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (table) => ({
+  orderIdIdx: index("order_items_order_id_idx").on(table.orderId),
+  productIdIdx: index("order_items_product_id_idx").on(table.productId),
+}));
 
 export type OrderItem = typeof orderItems.$inferSelect;
 export type InsertOrderItem = typeof orderItems.$inferInsert;
@@ -130,7 +143,9 @@ export const appointments = mysqlTable("appointments", {
   ]).default("initial_consultation").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  userIdIdx: index("appointments_user_id_idx").on(table.userId),
+}));
 
 export type Appointment = typeof appointments.$inferSelect;
 export type InsertAppointment = typeof appointments.$inferInsert;
@@ -182,7 +197,9 @@ export const notifications = mysqlTable("notifications", {
   relatedAppointmentId: int("relatedAppointmentId"),
   read: boolean("read").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (table) => ({
+  userIdIdx: index("notifications_user_id_idx").on(table.userId),
+}));
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = typeof notifications.$inferInsert;
@@ -228,7 +245,9 @@ export const chatAgents = mysqlTable("chatAgents", {
   isActive: boolean("isActive").default(true).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  userIdIdx: index("chat_agents_user_id_idx").on(table.userId),
+}));
 
 export type ChatAgent = typeof chatAgents.$inferSelect;
 export type InsertChatAgent = typeof chatAgents.$inferInsert;
@@ -246,7 +265,9 @@ export const chatConversations = mysqlTable("chatConversations", {
   closedAt: timestamp("closedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  userIdIdx: index("chat_conversations_user_id_idx").on(table.userId),
+}));
 
 export type ChatConversation = typeof chatConversations.$inferSelect;
 export type InsertChatConversation = typeof chatConversations.$inferInsert;
@@ -263,7 +284,9 @@ export const chatMessages = mysqlTable("chatMessages", {
   attachmentUrl: varchar("attachmentUrl", { length: 500 }),
   isRead: boolean("isRead").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (table) => ({
+  conversationIdIdx: index("chat_messages_conversation_id_idx").on(table.conversationId),
+}));
 
 export type ChatMessage = typeof chatMessages.$inferSelect;
 export type InsertChatMessage = typeof chatMessages.$inferInsert;
