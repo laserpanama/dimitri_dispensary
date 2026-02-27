@@ -2,6 +2,7 @@ import {
   int,
   mysqlEnum,
   mysqlTable,
+  index,
   text,
   timestamp,
   varchar,
@@ -35,29 +36,35 @@ export type InsertUser = typeof users.$inferInsert;
 /**
  * Products table for cannabis dispensary inventory
  */
-export const products = mysqlTable("products", {
-  id: int("id").autoincrement().primaryKey(),
-  name: varchar("name", { length: 255 }).notNull(),
-  description: text("description"),
-  category: mysqlEnum("category", [
-    "flower",
-    "edibles",
-    "concentrates",
-    "tinctures",
-    "topicals",
-    "accessories",
-  ]).notNull(),
-  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
-  quantity: int("quantity").notNull().default(0),
-  thcLevel: decimal("thcLevel", { precision: 5, scale: 2 }), // percentage
-  cbdLevel: decimal("cbdLevel", { precision: 5, scale: 2 }), // percentage
-  strain: varchar("strain", { length: 255 }),
-  effects: text("effects"), // JSON array of effects
-  image: varchar("image", { length: 500 }),
-  active: boolean("active").default(true).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+export const products = mysqlTable(
+  "products",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    name: varchar("name", { length: 255 }).notNull(),
+    description: text("description"),
+    category: mysqlEnum("category", [
+      "flower",
+      "edibles",
+      "concentrates",
+      "tinctures",
+      "topicals",
+      "accessories",
+    ]).notNull(),
+    price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+    quantity: int("quantity").notNull().default(0),
+    thcLevel: decimal("thcLevel", { precision: 5, scale: 2 }), // percentage
+    cbdLevel: decimal("cbdLevel", { precision: 5, scale: 2 }), // percentage
+    strain: varchar("strain", { length: 255 }),
+    effects: text("effects"), // JSON array of effects
+    image: varchar("image", { length: 500 }),
+    active: boolean("active").default(true).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    categoryIdx: index("products_category_idx").on(table.category),
+  })
+);
 
 export type Product = typeof products.$inferSelect;
 export type InsertProduct = typeof products.$inferInsert;
@@ -65,27 +72,35 @@ export type InsertProduct = typeof products.$inferInsert;
 /**
  * Orders table for tracking customer preorders
  */
-export const orders = mysqlTable("orders", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
-  orderNumber: varchar("orderNumber", { length: 50 }).notNull().unique(),
-  status: mysqlEnum("status", [
-    "pending",
-    "confirmed",
-    "preparing",
-    "ready",
-    "completed",
-    "cancelled",
-  ]).default("pending").notNull(),
-  fulfillmentType: mysqlEnum("fulfillmentType", ["pickup", "delivery"]).notNull(),
-  totalPrice: decimal("totalPrice", { precision: 10, scale: 2 }).notNull(),
-  estimatedReadyTime: timestamp("estimatedReadyTime"),
-  actualReadyTime: timestamp("actualReadyTime"),
-  deliveryAddress: text("deliveryAddress"),
-  notes: text("notes"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+export const orders = mysqlTable(
+  "orders",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull(),
+    orderNumber: varchar("orderNumber", { length: 50 }).notNull().unique(),
+    status: mysqlEnum("status", [
+      "pending",
+      "confirmed",
+      "preparing",
+      "ready",
+      "completed",
+      "cancelled",
+    ])
+      .default("pending")
+      .notNull(),
+    fulfillmentType: mysqlEnum("fulfillmentType", ["pickup", "delivery"]).notNull(),
+    totalPrice: decimal("totalPrice", { precision: 10, scale: 2 }).notNull(),
+    estimatedReadyTime: timestamp("estimatedReadyTime"),
+    actualReadyTime: timestamp("actualReadyTime"),
+    deliveryAddress: text("deliveryAddress"),
+    notes: text("notes"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    userIdIdx: index("orders_userId_idx").on(table.userId),
+  })
+);
 
 export type Order = typeof orders.$inferSelect;
 export type InsertOrder = typeof orders.$inferInsert;
@@ -93,14 +108,21 @@ export type InsertOrder = typeof orders.$inferInsert;
 /**
  * Order items table for individual products in orders
  */
-export const orderItems = mysqlTable("orderItems", {
-  id: int("id").autoincrement().primaryKey(),
-  orderId: int("orderId").notNull(),
-  productId: int("productId").notNull(),
-  quantity: int("quantity").notNull(),
-  priceAtPurchase: decimal("priceAtPurchase", { precision: 10, scale: 2 }).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+export const orderItems = mysqlTable(
+  "orderItems",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    orderId: int("orderId").notNull(),
+    productId: int("productId").notNull(),
+    quantity: int("quantity").notNull(),
+    priceAtPurchase: decimal("priceAtPurchase", { precision: 10, scale: 2 }).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (table) => ({
+    orderIdIdx: index("orderItems_orderId_idx").on(table.orderId),
+    productIdIdx: index("orderItems_productId_idx").on(table.productId),
+  })
+);
 
 export type OrderItem = typeof orderItems.$inferSelect;
 export type InsertOrderItem = typeof orderItems.$inferInsert;
@@ -108,29 +130,39 @@ export type InsertOrderItem = typeof orderItems.$inferInsert;
 /**
  * Appointments table for doctor consultations
  */
-export const appointments = mysqlTable("appointments", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
-  appointmentNumber: varchar("appointmentNumber", { length: 50 }).notNull().unique(),
-  doctorName: varchar("doctorName", { length: 255 }).notNull(),
-  appointmentTime: timestamp("appointmentTime").notNull(),
-  duration: int("duration").notNull(), // in minutes
-  status: mysqlEnum("status", [
-    "scheduled",
-    "confirmed",
-    "completed",
-    "cancelled",
-    "no_show",
-  ]).default("scheduled").notNull(),
-  notes: text("notes"),
-  consultationType: mysqlEnum("consultationType", [
-    "initial_consultation",
-    "follow_up",
-    "product_recommendation",
-  ]).default("initial_consultation").notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+export const appointments = mysqlTable(
+  "appointments",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull(),
+    appointmentNumber: varchar("appointmentNumber", { length: 50 }).notNull().unique(),
+    doctorName: varchar("doctorName", { length: 255 }).notNull(),
+    appointmentTime: timestamp("appointmentTime").notNull(),
+    duration: int("duration").notNull(), // in minutes
+    status: mysqlEnum("status", [
+      "scheduled",
+      "confirmed",
+      "completed",
+      "cancelled",
+      "no_show",
+    ])
+      .default("scheduled")
+      .notNull(),
+    notes: text("notes"),
+    consultationType: mysqlEnum("consultationType", [
+      "initial_consultation",
+      "follow_up",
+      "product_recommendation",
+    ])
+      .default("initial_consultation")
+      .notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    userIdIdx: index("appointments_userId_idx").on(table.userId),
+  })
+);
 
 export type Appointment = typeof appointments.$inferSelect;
 export type InsertAppointment = typeof appointments.$inferInsert;
@@ -165,24 +197,30 @@ export type InsertBlogPost = typeof blogPosts.$inferInsert;
 /**
  * Notifications table for order and appointment updates
  */
-export const notifications = mysqlTable("notifications", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
-  type: mysqlEnum("type", [
-    "order_ready",
-    "order_shipped",
-    "appointment_reminder",
-    "appointment_confirmed",
-    "new_blog_post",
-    "promotion",
-  ]).notNull(),
-  title: varchar("title", { length: 255 }).notNull(),
-  message: text("message").notNull(),
-  relatedOrderId: int("relatedOrderId"),
-  relatedAppointmentId: int("relatedAppointmentId"),
-  read: boolean("read").default(false).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+export const notifications = mysqlTable(
+  "notifications",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull(),
+    type: mysqlEnum("type", [
+      "order_ready",
+      "order_shipped",
+      "appointment_reminder",
+      "appointment_confirmed",
+      "new_blog_post",
+      "promotion",
+    ]).notNull(),
+    title: varchar("title", { length: 255 }).notNull(),
+    message: text("message").notNull(),
+    relatedOrderId: int("relatedOrderId"),
+    relatedAppointmentId: int("relatedAppointmentId"),
+    read: boolean("read").default(false).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (table) => ({
+    userIdIdx: index("notifications_userId_idx").on(table.userId),
+  })
+);
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = typeof notifications.$inferInsert;
@@ -236,17 +274,23 @@ export type InsertChatAgent = typeof chatAgents.$inferInsert;
 /**
  * Chat conversations table
  */
-export const chatConversations = mysqlTable("chatConversations", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
-  agentId: int("agentId"),
-  status: mysqlEnum("status", ["active", "closed", "waiting"]).default("waiting").notNull(),
-  subject: varchar("subject", { length: 255 }),
-  startedAt: timestamp("startedAt").defaultNow().notNull(),
-  closedAt: timestamp("closedAt"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+export const chatConversations = mysqlTable(
+  "chatConversations",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull(),
+    agentId: int("agentId"),
+    status: mysqlEnum("status", ["active", "closed", "waiting"]).default("waiting").notNull(),
+    subject: varchar("subject", { length: 255 }),
+    startedAt: timestamp("startedAt").defaultNow().notNull(),
+    closedAt: timestamp("closedAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    userIdIdx: index("chatConversations_userId_idx").on(table.userId),
+  })
+);
 
 export type ChatConversation = typeof chatConversations.$inferSelect;
 export type InsertChatConversation = typeof chatConversations.$inferInsert;
@@ -254,16 +298,22 @@ export type InsertChatConversation = typeof chatConversations.$inferInsert;
 /**
  * Chat messages table
  */
-export const chatMessages = mysqlTable("chatMessages", {
-  id: int("id").autoincrement().primaryKey(),
-  conversationId: int("conversationId").notNull(),
-  senderId: int("senderId").notNull(),
-  senderType: mysqlEnum("senderType", ["customer", "agent"]).notNull(),
-  message: text("message").notNull(),
-  attachmentUrl: varchar("attachmentUrl", { length: 500 }),
-  isRead: boolean("isRead").default(false).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+export const chatMessages = mysqlTable(
+  "chatMessages",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    conversationId: int("conversationId").notNull(),
+    senderId: int("senderId").notNull(),
+    senderType: mysqlEnum("senderType", ["customer", "agent"]).notNull(),
+    message: text("message").notNull(),
+    attachmentUrl: varchar("attachmentUrl", { length: 500 }),
+    isRead: boolean("isRead").default(false).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (table) => ({
+    conversationIdIdx: index("chatMessages_conversationId_idx").on(table.conversationId),
+  })
+);
 
 export type ChatMessage = typeof chatMessages.$inferSelect;
 export type InsertChatMessage = typeof chatMessages.$inferInsert;
