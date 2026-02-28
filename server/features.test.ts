@@ -59,9 +59,7 @@ describe("Age Verification", () => {
     const { ctx } = createPublicContext();
     const caller = appRouter.createCaller(ctx);
 
-    const result = await caller.ageVerification.verify({
-      ipAddress: "192.168.1.1",
-    });
+    const result = await caller.ageVerification.verify({});
 
     expect(result).toEqual({ success: true });
   });
