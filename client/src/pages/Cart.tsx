@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
@@ -13,26 +13,29 @@ interface CartItem {
 
 export default function Cart() {
   const { user } = useAuth();
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
+    // Optimization: Initialize from localStorage to avoid extra render and provide IDs for query
+    return JSON.parse(localStorage.getItem("cartItems") || "[]");
+  });
   const [fulfillmentType, setFulfillmentType] = useState<"pickup" | "delivery">("pickup");
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [products, setProducts] = useState<Record<number, any>>({});
-
   const createOrderMutation = trpc.orders.create.useMutation();
-  const { data: allProducts = [] } = trpc.products.list.useQuery();
+  // Optimization: Only fetch products that are actually in the cart
+  const { data: cartProducts = [] } = trpc.products.getByIds.useQuery(
+    { ids: cartItems.map((item) => item.productId) },
+    { enabled: cartItems.length > 0 }
+  );
 
-  useEffect(() => {
-    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
-    setCartItems(items);
-
-    // Create product lookup
+  // Optimization: Use useMemo to derive the product lookup map directly from the query data.
+  // This avoids an extra render cycle compared to using useState + useEffect.
+  const products = useMemo(() => {
     const lookup: Record<number, any> = {};
-    allProducts.forEach((p) => {
+    cartProducts.forEach((p) => {
       lookup[p.id] = p;
     });
-    setProducts(lookup);
-  }, [allProducts]);
+    return lookup;
+  }, [cartProducts]);
 
   const handleRemoveItem = (productId: number) => {
     const updated = cartItems.filter((item) => item.productId !== productId);
