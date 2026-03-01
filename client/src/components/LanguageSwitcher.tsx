@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export default function LanguageSwitcher() {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
 
   const languages = [
     { code: "en", name: "English", flag: "🇬🇧" },
@@ -28,9 +28,12 @@ export default function LanguageSwitcher() {
           variant="outline"
           size="sm"
           className="flex items-center gap-2 bg-white hover:bg-gray-100 text-gray-900"
+          aria-label={t("common.language")}
         >
-          <Globe className="w-4 h-4" />
-          <span className="text-sm font-medium">{currentLanguage.flag} {currentLanguage.name}</span>
+          <Globe className="w-4 h-4" aria-hidden="true" />
+          <span className="text-sm font-medium">
+            {currentLanguage.flag} {currentLanguage.name}
+          </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">

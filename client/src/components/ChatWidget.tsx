@@ -4,8 +4,10 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, X, Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 export default function ChatWidget() {
+  const { t } = useTranslation();
   const { user, isAuthenticated } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [conversationId, setConversationId] = useState<number | null>(null);
@@ -116,9 +118,10 @@ export default function ChatWidget() {
       <button
         onClick={handleOpenChat}
         className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-300 hover:scale-110"
-        title="Open chat"
+        title={t("chat.title")}
+        aria-label={t("chat.title")}
       >
-        <MessageCircle className="w-6 h-6" />
+        <MessageCircle className="w-6 h-6" aria-hidden="true" />
       </button>
 
       {/* Chat Window */}
@@ -133,18 +136,26 @@ export default function ChatWidget() {
             <button
               onClick={() => setIsOpen(false)}
               className="p-1 hover:bg-green-700 rounded-lg transition-colors"
+              aria-label={t("common.close")}
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5" aria-hidden="true" />
             </button>
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+          <div
+            className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50"
+            role="log"
+            aria-live="polite"
+          >
             {messages.length === 0 ? (
               <div className="text-center text-gray-500 py-8">
-                <MessageCircle className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                <p>Start a conversation!</p>
-                <p className="text-sm">Ask about products or get recommendations</p>
+                <MessageCircle
+                  className="w-12 h-12 mx-auto mb-2 text-gray-300"
+                  aria-hidden="true"
+                />
+                <p>{t("chat.startConversation")}</p>
+                <p className="text-sm">{t("chat.askAboutProducts")}</p>
               </div>
             ) : (
               messages.map((msg, idx) => (
@@ -181,19 +192,21 @@ export default function ChatWidget() {
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-                placeholder="Type your message..."
+                placeholder={t("chat.typeMessage")}
                 disabled={isLoading}
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+                aria-label={t("chat.typeMessage")}
               />
               <button
                 onClick={handleSendMessage}
                 disabled={isLoading || !inputMessage.trim()}
                 className="p-2 bg-green-600 hover:bg-green-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                aria-label={t("chat.send")}
               >
                 {isLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
                 ) : (
-                  <Send className="w-4 h-4" />
+                  <Send className="w-4 h-4" aria-hidden="true" />
                 )}
               </button>
             </div>
