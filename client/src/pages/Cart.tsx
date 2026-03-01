@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
@@ -13,26 +13,35 @@ interface CartItem {
 
 export default function Cart() {
   const { user } = useAuth();
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [cartItems, setCartItems] = useState<CartItem[]>(() =>
+    JSON.parse(localStorage.getItem("cartItems") || "[]")
+  );
   const [fulfillmentType, setFulfillmentType] = useState<"pickup" | "delivery">("pickup");
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [products, setProducts] = useState<Record<number, any>>({});
 
   const createOrderMutation = trpc.orders.create.useMutation();
-  const { data: allProducts = [] } = trpc.products.list.useQuery();
+
+  // Get cart item IDs for fetching product details.
+  // We derive this from state and memoize it to avoid unnecessary recalculations and localStorage reads.
+  const cartProductIds = useMemo(() => cartItems.map((item) => item.productId), [cartItems]);
+
+  // Optimization: Fetch only the products that are actually in the cart.
+  // This avoids loading the entire product catalog, which improves performance as the catalog grows.
+  const { data: fetchedProducts = [] } = trpc.products.getByIds.useQuery(
+    { ids: cartProductIds },
+    { enabled: cartProductIds.length > 0 }
+  );
 
   useEffect(() => {
-    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
-    setCartItems(items);
-
-    // Create product lookup
+    // Create product lookup from targeted fetch
     const lookup: Record<number, any> = {};
-    allProducts.forEach((p) => {
+    fetchedProducts.forEach((p) => {
       lookup[p.id] = p;
     });
     setProducts(lookup);
-  }, [allProducts]);
+  }, [fetchedProducts]);
 
   const handleRemoveItem = (productId: number) => {
     const updated = cartItems.filter((item) => item.productId !== productId);
