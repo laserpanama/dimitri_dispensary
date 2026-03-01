@@ -71,6 +71,12 @@ export const appRouter = router({
         }
         return product;
       }),
+
+    getByIds: publicProcedure
+      .input(z.object({ ids: z.array(z.number()) }))
+      .query(async ({ input }) => {
+        return await getProductsByIds(input.ids);
+      }),
   }),
 
   // Orders
