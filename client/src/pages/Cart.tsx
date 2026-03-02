@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
@@ -17,22 +17,28 @@ export default function Cart() {
   const [fulfillmentType, setFulfillmentType] = useState<"pickup" | "delivery">("pickup");
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [products, setProducts] = useState<Record<number, any>>({});
 
   const createOrderMutation = trpc.orders.create.useMutation();
-  const { data: allProducts = [] } = trpc.products.list.useQuery();
 
   useEffect(() => {
     const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
     setCartItems(items);
+  }, []);
 
-    // Create product lookup
+  // Optimization: Fetch only products that are actually in the cart
+  const { data: cartProducts = [] } = trpc.products.getByIds.useQuery(
+    { ids: cartItems.map((i) => i.productId) },
+    { enabled: cartItems.length > 0 }
+  );
+
+  // Optimization: Use useMemo for derived lookup state
+  const products = useMemo(() => {
     const lookup: Record<number, any> = {};
-    allProducts.forEach((p) => {
+    cartProducts.forEach((p) => {
       lookup[p.id] = p;
     });
-    setProducts(lookup);
-  }, [allProducts]);
+    return lookup;
+  }, [cartProducts]);
 
   const handleRemoveItem = (productId: number) => {
     const updated = cartItems.filter((item) => item.productId !== productId);
