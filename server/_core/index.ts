@@ -31,6 +31,18 @@ async function startServer() {
   const app = express();
   const server = createServer(app);
 
+  // Security: Basic hardening
+  app.disable("x-powered-by");
+  app.set("trust proxy", 1); // Trust first proxy (e.g., Railway, Nginx)
+
+  // Security: Set security headers manually to avoid adding extra dependencies
+  app.use((req, res, next) => {
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("X-Frame-Options", "DENY");
+    res.setHeader("X-XSS-Protection", "1; mode=block");
+    next();
+  });
+
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));

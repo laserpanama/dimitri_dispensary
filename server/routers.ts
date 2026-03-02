@@ -40,9 +40,10 @@ export const appRouter = router({
   // Age Verification
   ageVerification: router({
     verify: publicProcedure
-      .input(z.object({ ipAddress: z.string().optional() }))
-      .mutation(async ({ input, ctx }) => {
-        const ipAddress = input.ipAddress || ctx.req.headers["x-forwarded-for"]?.toString() || "unknown";
+      .mutation(async ({ ctx }) => {
+        // Security: Get IP from server-side request context to prevent spoofing
+        // This relies on 'trust proxy' being configured correctly in Express
+        const ipAddress = ctx.req.ip || "unknown";
 
         if (ctx.user) {
           await updateUserAgeVerification(ctx.user.id);
