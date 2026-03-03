@@ -106,6 +106,15 @@ describe("Products", () => {
       expect(error.code).toBe("NOT_FOUND");
     }
   });
+
+  it("should get multiple products by ids", async () => {
+    const { ctx } = createPublicContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const products = await caller.products.getByIds({ ids: [1, 2] });
+
+    expect(Array.isArray(products)).toBe(true);
+  });
 });
 
 describe("Orders", () => {
