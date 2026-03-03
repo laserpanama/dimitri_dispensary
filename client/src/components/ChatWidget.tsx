@@ -4,15 +4,23 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, X, Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function ChatWidget() {
   const { user, isAuthenticated } = useAuth();
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [conversationId, setConversationId] = useState<number | null>(null);
   const [messages, setMessages] = useState<any[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const startConversationMutation = trpc.chat.startConversation.useMutation();
   const sendMessageMutation = trpc.chat.sendMessage.useMutation();
@@ -25,6 +33,16 @@ export default function ChatWidget() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Focus input when chat opens
+  useEffect(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
   // Update messages when fetched
   useEffect(() => {
@@ -113,38 +131,48 @@ export default function ChatWidget() {
   return (
     <>
       {/* Chat Widget Button */}
-      <button
-        onClick={handleOpenChat}
-        className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-300 hover:scale-110"
-        title="Open chat"
-      >
-        <MessageCircle className="w-6 h-6" />
-      </button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            onClick={handleOpenChat}
+            className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-300 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2"
+            aria-label={t('chat.title')}
+          >
+            <MessageCircle className="w-6 h-6" aria-hidden="true" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="left">{t('chat.title')}</TooltipContent>
+      </Tooltip>
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 z-40 w-96 max-h-96 bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+        <div className="fixed bottom-24 right-6 z-40 w-96 max-h-96 bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-200">
           {/* Header */}
           <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white p-4 flex items-center justify-between">
             <div>
-              <h3 className="font-bold">Dimitri's Support</h3>
-              <p className="text-sm text-green-100">We're here to help!</p>
+              <h3 className="font-bold">{t('chat.title')}</h3>
+              <p className="text-sm text-green-100">{t('chat.subtitle')}</p>
             </div>
             <button
               onClick={() => setIsOpen(false)}
-              className="p-1 hover:bg-green-700 rounded-lg transition-colors"
+              className="p-1 hover:bg-green-700 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+              aria-label={t('common.close')}
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5" aria-hidden="true" />
             </button>
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+          <div
+            className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50"
+            role="log"
+            aria-live="polite"
+          >
             {messages.length === 0 ? (
               <div className="text-center text-gray-500 py-8">
-                <MessageCircle className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                <p>Start a conversation!</p>
-                <p className="text-sm">Ask about products or get recommendations</p>
+                <MessageCircle className="w-12 h-12 mx-auto mb-2 text-gray-300" aria-hidden="true" />
+                <p>{t('chat.startConversation')}</p>
+                <p className="text-sm">{t('chat.askAboutProducts')}</p>
               </div>
             ) : (
               messages.map((msg, idx) => (
@@ -177,28 +205,31 @@ export default function ChatWidget() {
           <div className="border-t border-gray-200 p-4 bg-white">
             <div className="flex gap-2">
               <input
+                ref={inputRef}
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-                placeholder="Type your message..."
+                placeholder={t('chat.typeMessage')}
                 disabled={isLoading}
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+                aria-label={t('chat.typeMessage')}
               />
               <button
                 onClick={handleSendMessage}
                 disabled={isLoading || !inputMessage.trim()}
-                className="p-2 bg-green-600 hover:bg-green-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="p-2 bg-green-600 hover:bg-green-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500"
+                aria-label={t('chat.send')}
               >
                 {isLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
                 ) : (
-                  <Send className="w-4 h-4" />
+                  <Send className="w-4 h-4" aria-hidden="true" />
                 )}
               </button>
             </div>
             <p className="text-xs text-gray-500 mt-2">
-              💡 Ask about products or get personalized recommendations!
+              💡 {t('chat.askAboutProducts')}
             </p>
           </div>
         </div>
