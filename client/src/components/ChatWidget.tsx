@@ -13,6 +13,15 @@ export default function ChatWidget() {
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Focus input when chat opens
+  useEffect(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => inputRef.current?.focus(), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
   const startConversationMutation = trpc.chat.startConversation.useMutation();
   const sendMessageMutation = trpc.chat.sendMessage.useMutation();
@@ -116,9 +125,10 @@ export default function ChatWidget() {
       <button
         onClick={handleOpenChat}
         className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-300 hover:scale-110"
-        title="Open chat"
+        aria-label="Support Chat"
+        title="Support Chat"
       >
-        <MessageCircle className="w-6 h-6" />
+        <MessageCircle className="w-6 h-6" aria-hidden="true" />
       </button>
 
       {/* Chat Window */}
@@ -133,13 +143,18 @@ export default function ChatWidget() {
             <button
               onClick={() => setIsOpen(false)}
               className="p-1 hover:bg-green-700 rounded-lg transition-colors"
+              aria-label="Close Chat"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5" aria-hidden="true" />
             </button>
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+          <div
+            className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50"
+            role="log"
+            aria-live="polite"
+          >
             {messages.length === 0 ? (
               <div className="text-center text-gray-500 py-8">
                 <MessageCircle className="w-12 h-12 mx-auto mb-2 text-gray-300" />
@@ -177,11 +192,13 @@ export default function ChatWidget() {
           <div className="border-t border-gray-200 p-4 bg-white">
             <div className="flex gap-2">
               <input
+                ref={inputRef}
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
                 placeholder="Type your message..."
+                aria-label="Type your message"
                 disabled={isLoading}
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
               />
@@ -189,6 +206,7 @@ export default function ChatWidget() {
                 onClick={handleSendMessage}
                 disabled={isLoading || !inputMessage.trim()}
                 className="p-2 bg-green-600 hover:bg-green-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                aria-label="Send Message"
               >
                 {isLoading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
