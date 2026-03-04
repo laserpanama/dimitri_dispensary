@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
@@ -13,26 +13,28 @@ interface CartItem {
 
 export default function Cart() {
   const { user } = useAuth();
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  // Optimization: Lazy state initialization to avoid redundant localStorage reads
+  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      return JSON.parse(localStorage.getItem("cartItems") || "[]");
+    } catch (e) {
+      console.error("Failed to parse cart items", e);
+      return [];
+    }
+  });
   const [fulfillmentType, setFulfillmentType] = useState<"pickup" | "delivery">("pickup");
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [products, setProducts] = useState<Record<number, any>>({});
 
   const createOrderMutation = trpc.orders.create.useMutation();
-  const { data: allProducts = [] } = trpc.products.list.useQuery();
 
-  useEffect(() => {
-    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
-    setCartItems(items);
-
-    // Create product lookup
-    const lookup: Record<number, any> = {};
-    allProducts.forEach((p) => {
-      lookup[p.id] = p;
-    });
-    setProducts(lookup);
-  }, [allProducts]);
+  // Optimization: Only fetch products that are actually in the cart
+  const productIds = useMemo(() => cartItems.map((i) => i.productId), [cartItems]);
+  const { data: cartProducts = [] } = trpc.products.getByIds.useQuery(
+    { ids: productIds },
+    { enabled: productIds.length > 0 }
+  );
 
   const handleRemoveItem = (productId: number) => {
     const updated = cartItems.filter((item) => item.productId !== productId);
@@ -53,13 +55,23 @@ export default function Cart() {
     localStorage.setItem("cartItems", JSON.stringify(updated));
   };
 
-  const calculateTotal = () => {
-    return cartItems.reduce((total, item) => {
+  // Optimization: Memoize product lookup map to prevent re-creation on every render
+  const products = useMemo(() => {
+    const lookup: Record<number, any> = {};
+    cartProducts.forEach((p) => {
+      lookup[p.id] = p;
+    });
+    return lookup;
+  }, [cartProducts]);
+
+  // Optimization: Memoize total price calculation
+  const total = useMemo(() => {
+    return cartItems.reduce((acc, item) => {
       const product = products[item.productId];
-      if (!product) return total;
-      return total + parseFloat(product.price) * item.quantity;
+      if (!product) return acc;
+      return acc + parseFloat(product.price) * item.quantity;
     }, 0);
-  };
+  }, [cartItems, products]);
 
   const handleCheckout = async () => {
     if (cartItems.length === 0) {
@@ -92,8 +104,6 @@ export default function Cart() {
       setIsLoading(false);
     }
   };
-
-  const total = calculateTotal();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
