@@ -115,4 +115,19 @@ describe("Chat Security (IDOR)", () => {
       expect(error.code).toBe("FORBIDDEN");
     }
   });
+
+  it("should reject chat messages exceeding the maximum length", async () => {
+    const { ctx } = createAuthContext(1);
+    const caller = appRouter.createCaller(ctx);
+    const oversizedMessage = "a".repeat(5001);
+
+    try {
+      await caller.chat.sendMessage({ conversationId: 123, message: oversizedMessage });
+      expect.fail("Should have thrown validation error for oversized message");
+    } catch (error: any) {
+      if (error.name === 'AssertionError') throw error;
+      // tRPC validation errors for Zod typically have code "BAD_REQUEST"
+      expect(error.code).toBe("BAD_REQUEST");
+    }
+  });
 });
