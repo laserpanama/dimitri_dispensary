@@ -17,16 +17,15 @@ import OrderHistory from "./pages/OrderHistory";
 function Router() {
   return (
     <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path={"/menu"} component={Menu} />
-      <Route path={"/cart"} component={Cart} />
-      <Route path={"/appointments"} component={Appointments} />
-      <Route path={"/blog"} component={Blog} />
-      <Route path={"/blog/:slug"} component={BlogPost} />
-      <Route path={"/orders"} component={OrderHistory} />
-      <Route path={"/admin"} component={AdminDashboard} />
-      <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
+      <Route path="/" component={Home} />
+      <Route path="/menu" component={Menu} />
+      <Route path="/cart" component={Cart} />
+      <Route path="/appointments" component={Appointments} />
+      <Route path="/blog" component={Blog} />
+      <Route path="/blog/:slug" component={BlogPost} />
+      <Route path="/orders" component={OrderHistory} />
+      <Route path="/admin" component={AdminDashboard} />
+      <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -35,10 +34,7 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="light"
-        // switchable
-      >
+      <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <Toaster />
           <Router />
@@ -50,3 +46,4 @@ function App() {
 }
 
 export default App;
+
