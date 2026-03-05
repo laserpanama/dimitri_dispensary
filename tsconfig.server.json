@@ -1,9 +1,0 @@
-{
-  "extends": "./tsconfig.json",
-  "include": ["server/**/*", "shared/**/*"],
-  "exclude": ["node_modules", "build", "dist", "client/**/*", "**/*.test.ts"],
-  "compilerOptions": {
-    "lib": ["esnext", "dom"],
-    "types": ["node"]
-  }
-}
