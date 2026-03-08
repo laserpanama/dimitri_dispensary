@@ -8,7 +8,9 @@ interface AgeVerificationModalProps {
   onVerified: () => void;
 }
 
-export default function AgeVerificationModal({ onVerified }: AgeVerificationModalProps) {
+export default function AgeVerificationModal({
+  onVerified,
+}: AgeVerificationModalProps) {
   const { t } = useTranslation();
   const [birthYear, setBirthYear] = useState("");
   const [error, setError] = useState("");
@@ -23,20 +25,20 @@ export default function AgeVerificationModal({ onVerified }: AgeVerificationModa
     setError("");
 
     if (!birthYear) {
-      setError(t('ageVerification.error'));
+      setError(t("ageVerification.error"));
       return;
     }
 
     const year = parseInt(birthYear, 10);
 
     if (isNaN(year) || year < minBirthYear || year > maxBirthYear) {
-      setError(t('ageVerification.error'));
+      setError(t("ageVerification.error"));
       return;
     }
 
     setIsLoading(true);
     try {
-      await verifyMutation.mutateAsync({});
+      await verifyMutation.mutateAsync(undefined);
       localStorage.setItem("ageVerified", "true");
       localStorage.setItem("ageVerifiedAt", new Date().toISOString());
       onVerified();
@@ -61,23 +63,26 @@ export default function AgeVerificationModal({ onVerified }: AgeVerificationModa
           <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-100 rounded-full mb-4">
             <AlertCircle className="w-8 h-8 text-amber-600" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('ageVerification.title')}</h1>
-          <p className="text-gray-600">
-            {t('ageVerification.description')}
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            {t("ageVerification.title")}
+          </h1>
+          <p className="text-gray-600">{t("ageVerification.description")}</p>
         </div>
 
         {/* Content */}
         <div className="space-y-6">
           <div>
-            <label htmlFor="birthYear" className="block text-sm font-semibold text-gray-700 mb-3">
-              {t('ageVerification.question')}
+            <label
+              htmlFor="birthYear"
+              className="block text-sm font-semibold text-gray-700 mb-3"
+            >
+              {t("ageVerification.question")}
             </label>
             <input
               id="birthYear"
               type="number"
               value={birthYear}
-              onChange={(e) => {
+              onChange={e => {
                 setBirthYear(e.target.value);
                 setError("");
               }}
@@ -87,6 +92,7 @@ export default function AgeVerificationModal({ onVerified }: AgeVerificationModa
               max={maxBirthYear}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-lg"
               disabled={isLoading}
+              autoFocus
             />
           </div>
 
@@ -102,11 +108,11 @@ export default function AgeVerificationModal({ onVerified }: AgeVerificationModa
             disabled={isLoading}
             className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-3 rounded-lg transition-all duration-200"
           >
-            {isLoading ? t('common.loading') : t('ageVerification.confirm')}
+            {isLoading ? t("common.loading") : t("ageVerification.confirm")}
           </Button>
 
           <p className="text-xs text-gray-500 text-center">
-            {t('ageVerification.disclaimer')}
+            {t("ageVerification.disclaimer")}
           </p>
         </div>
       </div>
