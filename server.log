@@ -1,0 +1,5 @@
+[OAuth] Initialized with baseURL:
+[OAuth] ERROR: OAUTH_SERVER_URL is not configured! Set OAUTH_SERVER_URL environment variable.
+Server running on http://localhost:3000/
+[Auth] Missing session cookie
+[Auth] Missing session cookie
