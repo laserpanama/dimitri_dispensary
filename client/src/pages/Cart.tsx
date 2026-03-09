@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { ArrowLeft, Trash2, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 
@@ -13,13 +13,13 @@ interface CartItem {
 
 export default function Cart() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const [cartItems, setCartItems] = useState<CartItem[]>(() =>
     JSON.parse(localStorage.getItem("cartItems") || "[]")
   );
   const [fulfillmentType, setFulfillmentType] = useState<"pickup" | "delivery">("pickup");
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [products, setProducts] = useState<Record<number, any>>({});
 
   const createOrderMutation = trpc.orders.create.useMutation();
 
@@ -34,13 +34,14 @@ export default function Cart() {
     { enabled: cartProductIds.length > 0 }
   );
 
-  useEffect(() => {
-    // Create product lookup from targeted fetch
+  // Optimization: Use useMemo for product lookup instead of useEffect + useState.
+  // This avoids an extra render cycle when fetchedProducts changes.
+  const productsMap = useMemo(() => {
     const lookup: Record<number, any> = {};
     fetchedProducts.forEach((p) => {
       lookup[p.id] = p;
     });
-    setProducts(lookup);
+    return lookup;
   }, [fetchedProducts]);
 
   const handleRemoveItem = (productId: number) => {
@@ -62,13 +63,15 @@ export default function Cart() {
     localStorage.setItem("cartItems", JSON.stringify(updated));
   };
 
-  const calculateTotal = () => {
-    return cartItems.reduce((total, item) => {
-      const product = products[item.productId];
-      if (!product) return total;
-      return total + parseFloat(product.price) * item.quantity;
+  // Optimization: Memoize total calculation to prevent redundant processing on every render.
+  // This is especially beneficial when the user is typing in the deliveryAddress field.
+  const total = useMemo(() => {
+    return cartItems.reduce((acc, item) => {
+      const product = productsMap[item.productId];
+      if (!product) return acc;
+      return acc + parseFloat(product.price) * item.quantity;
     }, 0);
-  };
+  }, [cartItems, productsMap]);
 
   const handleCheckout = async () => {
     if (cartItems.length === 0) {
@@ -93,7 +96,8 @@ export default function Cart() {
       setCartItems([]);
       toast.success("Order placed successfully!");
       setTimeout(() => {
-        window.location.href = "/orders";
+        // Optimization: Use SPA navigation instead of full page reload.
+        setLocation("/orders");
       }, 1000);
     } catch (error) {
       toast.error("Failed to place order");
@@ -101,8 +105,6 @@ export default function Cart() {
       setIsLoading(false);
     }
   };
-
-  const total = calculateTotal();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
@@ -136,7 +138,7 @@ export default function Cart() {
             {/* Cart Items */}
             <div className="lg:col-span-2 space-y-4">
               {cartItems.map((item) => {
-                const product = products[item.productId];
+                const product = productsMap[item.productId];
                 if (!product) return null;
 
                 return (
