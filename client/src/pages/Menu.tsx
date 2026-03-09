@@ -6,6 +6,7 @@ import { Link } from "wouter";
 import { ArrowLeft, ShoppingCart, Leaf } from "lucide-react";
 import { toast } from "sonner";
 import ProductCard from "@/components/ProductCard";
+import { usePersistFn } from "@/hooks/usePersistFn";
 
 type Category = "flower" | "edibles" | "concentrates" | "tinctures" | "topicals" | "accessories";
 
@@ -25,7 +26,9 @@ export default function Menu() {
     category: selectedCategory,
   });
 
-  const handleAddToCart = (productId: number) => {
+  // Optimization: Use usePersistFn to provide a stable reference for the callback.
+  // This prevents unnecessary re-renders of ProductCard when Menu re-renders.
+  const handleAddToCart = usePersistFn((productId: number) => {
     const cartItems = JSON.parse(localStorage.getItem("cartItems") || "[]");
     const existingItem = cartItems.find((item: any) => item.productId === productId);
 
@@ -37,7 +40,7 @@ export default function Menu() {
 
     localStorage.setItem("cartItems", JSON.stringify(cartItems));
     toast.success("Added to cart!");
-  };
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
