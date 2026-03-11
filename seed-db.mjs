@@ -6,7 +6,7 @@ const db = new Database("./dev.db");
 const drizzleDb = drizzle(db, { schema });
 
 // Create tables manually
-db.exec(\
+db.exec(`
 CREATE TABLE IF NOT EXISTS products (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
@@ -28,6 +28,6 @@ INSERT OR IGNORE INTO products (id, name, description, category, price, quantity
 (1, 'OG Kush', 'Classic indica strain with earthy flavor', 'flower', 45.00, 20, 'OG Kush', 23.5, 0.1, 1),
 (2, 'Blue Dream', 'Balanced hybrid, sweet berry aroma', 'flower', 42.00, 15, 'Blue Dream', 21.0, 0.2, 1),
 (3, 'Gummies', 'THC-infused fruit gummies', 'edibles', 25.00, 50, NULL, NULL, NULL, 1);
-\);
+`);
 
 console.log("Database seeded!");
