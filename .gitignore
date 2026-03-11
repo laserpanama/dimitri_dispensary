@@ -8,3 +8,4 @@ npm-debug.log*
 .idea/
 *.sqlite
 .env
+generate-devops-outputs.js
