@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAuth } from "@/_core/hooks/useAuth";
+import { usePersistFn } from "@/hooks/usePersistFn";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
@@ -19,13 +19,12 @@ const CATEGORIES: { value: Category; label: string }[] = [
 ];
 
 export default function Menu() {
-  const { user } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState<Category | undefined>();
   const { data: products = [], isLoading } = trpc.products.list.useQuery({
     category: selectedCategory,
   });
 
-  const handleAddToCart = (productId: number) => {
+  const handleAddToCart = usePersistFn((productId: number) => {
     const cartItems = JSON.parse(localStorage.getItem("cartItems") || "[]");
     const existingItem = cartItems.find((item: any) => item.productId === productId);
 
@@ -37,7 +36,7 @@ export default function Menu() {
 
     localStorage.setItem("cartItems", JSON.stringify(cartItems));
     toast.success("Added to cart!");
-  };
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
