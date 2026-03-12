@@ -1,10 +1,11 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { ArrowLeft, Trash2, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
+import { usePersistFn } from "@/hooks/usePersistFn";
 
 interface CartItem {
   productId: number;
@@ -13,13 +14,13 @@ interface CartItem {
 
 export default function Cart() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const [cartItems, setCartItems] = useState<CartItem[]>(() =>
     JSON.parse(localStorage.getItem("cartItems") || "[]")
   );
   const [fulfillmentType, setFulfillmentType] = useState<"pickup" | "delivery">("pickup");
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [products, setProducts] = useState<Record<number, any>>({});
 
   const createOrderMutation = trpc.orders.create.useMutation();
 
@@ -34,22 +35,23 @@ export default function Cart() {
     { enabled: cartProductIds.length > 0 }
   );
 
-  useEffect(() => {
-    // Create product lookup from targeted fetch
+  // Performance Optimization: Use useMemo to create the product lookup object directly from the query result.
+  // This eliminates the redundant 'products' state and its corresponding 'useEffect', saving an extra render cycle.
+  const products = useMemo(() => {
     const lookup: Record<number, any> = {};
     fetchedProducts.forEach((p) => {
       lookup[p.id] = p;
     });
-    setProducts(lookup);
+    return lookup;
   }, [fetchedProducts]);
 
-  const handleRemoveItem = (productId: number) => {
+  const handleRemoveItem = usePersistFn((productId: number) => {
     const updated = cartItems.filter((item) => item.productId !== productId);
     setCartItems(updated);
     localStorage.setItem("cartItems", JSON.stringify(updated));
-  };
+  });
 
-  const handleUpdateQuantity = (productId: number, quantity: number) => {
+  const handleUpdateQuantity = usePersistFn((productId: number, quantity: number) => {
     if (quantity <= 0) {
       handleRemoveItem(productId);
       return;
@@ -60,17 +62,19 @@ export default function Cart() {
     );
     setCartItems(updated);
     localStorage.setItem("cartItems", JSON.stringify(updated));
-  };
+  });
 
-  const calculateTotal = () => {
-    return cartItems.reduce((total, item) => {
+  // Performance Optimization: Memoize the total price calculation to prevent redundant O(N) reductions on every render,
+  // especially when unrelated state updates occur (e.g., typing in the delivery address field).
+  const total = useMemo(() => {
+    return cartItems.reduce((acc, item) => {
       const product = products[item.productId];
-      if (!product) return total;
-      return total + parseFloat(product.price) * item.quantity;
+      if (!product) return acc;
+      return acc + parseFloat(product.price) * item.quantity;
     }, 0);
-  };
+  }, [cartItems, products]);
 
-  const handleCheckout = async () => {
+  const handleCheckout = usePersistFn(async () => {
     if (cartItems.length === 0) {
       toast.error("Your cart is empty");
       return;
@@ -93,16 +97,14 @@ export default function Cart() {
       setCartItems([]);
       toast.success("Order placed successfully!");
       setTimeout(() => {
-        window.location.href = "/orders";
+        setLocation("/orders");
       }, 1000);
     } catch (error) {
       toast.error("Failed to place order");
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const total = calculateTotal();
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
