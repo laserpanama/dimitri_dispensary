@@ -72,7 +72,7 @@ export const appRouter = router({
       }),
 
     getByIds: publicProcedure
-      .input(z.object({ ids: z.array(z.number()) }))
+      .input(z.object({ ids: z.array(z.number()).max(50) }))
       .query(async ({ input }) => {
         return await getProductsByIds(input.ids);
       }),
@@ -112,9 +112,9 @@ export const appRouter = router({
               productId: z.number(),
               quantity: z.number().min(1),
             })
-          ),
+          ).max(20),
           fulfillmentType: z.enum(["pickup", "delivery"]),
-          deliveryAddress: z.string().optional(),
+          deliveryAddress: z.string().max(1000).optional(),
         })
       )
       .mutation(async ({ input, ctx }) => {
@@ -212,7 +212,7 @@ export const appRouter = router({
         z.object({
           appointmentTime: z.date(),
           consultationType: z.enum(["initial_consultation", "follow_up", "product_recommendation"]),
-          notes: z.string().optional(),
+          notes: z.string().max(1000).optional(),
         })
       )
       .mutation(async ({ input, ctx }) => {
