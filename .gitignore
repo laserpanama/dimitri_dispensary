@@ -7,5 +7,6 @@ npm-debug.log*
 .vscode/
 .idea/
 *.sqlite
+dev.db
 generate-devops-outputs.js
 client/server/
