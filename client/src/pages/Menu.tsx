@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { usePersistFn } from "@/hooks/usePersistFn";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
@@ -25,7 +26,12 @@ export default function Menu() {
     category: selectedCategory,
   });
 
-  const handleAddToCart = (productId: number) => {
+  /**
+   * Stabilization of the handleAddToCart callback using usePersistFn.
+   * This provides a stable function reference for ProductCard components,
+   * preventing unnecessary re-renders when the Menu component re-renders.
+   */
+  const handleAddToCart = usePersistFn((productId: number) => {
     const cartItems = JSON.parse(localStorage.getItem("cartItems") || "[]");
     const existingItem = cartItems.find((item: any) => item.productId === productId);
 
@@ -37,7 +43,7 @@ export default function Menu() {
 
     localStorage.setItem("cartItems", JSON.stringify(cartItems));
     toast.success("Added to cart!");
-  };
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
