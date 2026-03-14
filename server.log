@@ -1,0 +1,4 @@
+npm warn exec The following package was not found and will be installed: tsx@4.21.0
+[OAuth] Initialized with baseURL:
+[OAuth] ERROR: OAUTH_SERVER_URL is not configured! Set OAUTH_SERVER_URL environment variable.
+Server running on http://localhost:3000/
