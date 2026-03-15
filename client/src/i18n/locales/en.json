@@ -110,7 +110,10 @@
     "deliveryAddress": "Delivery Address",
     "orderSummary": "Order Summary",
     "placeOrder": "Place Order",
-    "orderPlaced": "Order Placed Successfully!"
+    "orderPlaced": "Order Placed Successfully!",
+    "removeItem": "Remove item",
+    "increaseQuantity": "Increase quantity",
+    "decreaseQuantity": "Decrease quantity"
   },
   "appointments": {
     "title": "Doctor Appointments",
