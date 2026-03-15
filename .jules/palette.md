@@ -1,3 +1,7 @@
 ## 2025-01-24 - [Accessible Action Buttons and Image Fallbacks]
 **Learning:** Icon-only buttons (like "Add to Cart") require explicit `aria-label` attributes to be accessible. For buttons that are disabled (e.g., "Out of Stock"), appending the state to the label (e.g., "Add to cart (Out of Stock)") provides immediate context to screen reader users. Additionally, providing a thematic fallback icon (e.g., a `Leaf` icon for a dispensary) for failed image loads ensures the UI remains polished and meaningful even when assets are missing.
 **Action:** Always wrap icon-only buttons in `Tooltip` components and provide descriptive `aria-label` attributes. Implement `onError` handlers on product images to show high-quality fallback icons.
+
+## 2025-05-15 - [Dynamic Labels for Context-Sensitive Actions]
+**Learning:** For multi-purpose controls like a "minus" button that either decreases quantity or removes an item, dynamic ARIA labels (e.g., switching from "Decrease" to "Remove" at quantity 1) significantly improve clarity for assistive technology users. This communicates the finality of the action before it's taken. Furthermore, using `aria-live="polite"` on the quantity value itself ensures that users receive immediate confirmation of the change without losing focus on the control.
+**Action:** Implement dynamic labels for destructive actions embedded in multi-state controls. Use `aria-live` for numerical state changes that provide critical feedback.

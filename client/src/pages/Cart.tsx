@@ -3,8 +3,14 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
-import { ArrowLeft, Trash2, ShoppingCart } from "lucide-react";
+import { ArrowLeft, Trash2, ShoppingCart, Plus, Minus } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface CartItem {
   productId: number;
@@ -13,6 +19,7 @@ interface CartItem {
 
 export default function Cart() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [cartItems, setCartItems] = useState<CartItem[]>(() =>
     JSON.parse(localStorage.getItem("cartItems") || "[]")
   );
@@ -155,30 +162,52 @@ export default function Cart() {
                     </div>
 
                     <div className="flex items-center gap-4">
-                      <div className="flex items-center border border-green-500/50 rounded-lg">
-                        <button
-                          onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
-                          className="px-3 py-2 text-green-400 hover:bg-green-500/20"
-                        >
-                          −
-                        </button>
-                        <span className="px-4 py-2 text-white font-semibold">
+                      <div className="flex items-center border border-green-500/50 rounded-lg overflow-hidden">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
+                              className="px-3 py-2 text-green-400 hover:bg-green-500/20 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500"
+                              aria-label={item.quantity === 1 ? t("cart.removeItem") : t("cart.decreaseQuantity")}
+                            >
+                              <Minus className="w-4 h-4" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            {item.quantity === 1 ? t("cart.removeItem") : t("cart.decreaseQuantity")}
+                          </TooltipContent>
+                        </Tooltip>
+
+                        <span className="px-4 py-2 text-white font-semibold min-w-[3rem] text-center" aria-live="polite">
                           {item.quantity}
                         </span>
-                        <button
-                          onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
-                          className="px-3 py-2 text-green-400 hover:bg-green-500/20"
-                        >
-                          +
-                        </button>
+
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
+                              className="px-3 py-2 text-green-400 hover:bg-green-500/20 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500"
+                              aria-label={t("cart.increaseQuantity")}
+                            >
+                              <Plus className="w-4 h-4" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>{t("cart.increaseQuantity")}</TooltipContent>
+                        </Tooltip>
                       </div>
 
-                      <button
-                        onClick={() => handleRemoveItem(item.productId)}
-                        className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={() => handleRemoveItem(item.productId)}
+                            className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                            aria-label={t("cart.removeItem")}
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>{t("cart.removeItem")}</TooltipContent>
+                      </Tooltip>
                     </div>
                   </div>
                 );
