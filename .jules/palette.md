@@ -1,3 +1,7 @@
 ## 2025-01-24 - [Accessible Action Buttons and Image Fallbacks]
 **Learning:** Icon-only buttons (like "Add to Cart") require explicit `aria-label` attributes to be accessible. For buttons that are disabled (e.g., "Out of Stock"), appending the state to the label (e.g., "Add to cart (Out of Stock)") provides immediate context to screen reader users. Additionally, providing a thematic fallback icon (e.g., a `Leaf` icon for a dispensary) for failed image loads ensures the UI remains polished and meaningful even when assets are missing.
 **Action:** Always wrap icon-only buttons in `Tooltip` components and provide descriptive `aria-label` attributes. Implement `onError` handlers on product images to show high-quality fallback icons.
+
+## 2025-01-24 - [Context-Aware Cart Controls and SPA Navigation]
+**Learning:** UX clarity is significantly improved by using dynamic labels for quantity controls (e.g., changing "Decrease" to "Remove item" when quantity is 1). For screen readers, `aria-live="polite"` on price summaries ensures users are informed of updates without interruption. Additionally, using router-native navigation (like `wouter`'s `setLocation`) ensures a seamless SPA experience by avoiding unnecessary full-page reloads after checkout.
+**Action:** Use conditional logic for Tooltip and aria-label text on destructive actions. Prefer `setLocation` over `window.location.href`. Always explicitly link labels to form inputs using `htmlFor` and `id`.

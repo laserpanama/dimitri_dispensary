@@ -110,7 +110,10 @@
     "deliveryAddress": "Dirección de Entrega",
     "orderSummary": "Resumen del Pedido",
     "placeOrder": "Realizar Pedido",
-    "orderPlaced": "¡Pedido Realizado Exitosamente!"
+    "orderPlaced": "¡Pedido Realizado Exitosamente!",
+    "increaseQuantity": "Aumentar cantidad",
+    "decreaseQuantity": "Disminuir cantidad",
+    "removeItem": "Eliminar artículo"
   },
   "appointments": {
     "title": "Citas Médicas",
