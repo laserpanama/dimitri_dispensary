@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
@@ -19,7 +19,6 @@ export default function Cart() {
   const [fulfillmentType, setFulfillmentType] = useState<"pickup" | "delivery">("pickup");
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [products, setProducts] = useState<Record<number, any>>({});
 
   const createOrderMutation = trpc.orders.create.useMutation();
 
@@ -34,13 +33,14 @@ export default function Cart() {
     { enabled: cartProductIds.length > 0 }
   );
 
-  useEffect(() => {
-    // Create product lookup from targeted fetch
+  // Derive product lookup from fetched products.
+  // Using useMemo here eliminates redundant render cycles that would be caused by useEffect + useState.
+  const products = useMemo(() => {
     const lookup: Record<number, any> = {};
     fetchedProducts.forEach((p) => {
       lookup[p.id] = p;
     });
-    setProducts(lookup);
+    return lookup;
   }, [fetchedProducts]);
 
   const handleRemoveItem = (productId: number) => {
@@ -62,13 +62,15 @@ export default function Cart() {
     localStorage.setItem("cartItems", JSON.stringify(updated));
   };
 
-  const calculateTotal = () => {
-    return cartItems.reduce((total, item) => {
+  // Memoize total price calculation to avoid expensive recalculations on every render.
+  // This ensures that updates to unrelated state (like delivery address) don't trigger a re-calculation.
+  const total = useMemo(() => {
+    return cartItems.reduce((acc, item) => {
       const product = products[item.productId];
-      if (!product) return total;
-      return total + parseFloat(product.price) * item.quantity;
+      if (!product) return acc;
+      return acc + parseFloat(product.price) * item.quantity;
     }, 0);
-  };
+  }, [cartItems, products]);
 
   const handleCheckout = async () => {
     if (cartItems.length === 0) {
@@ -101,8 +103,6 @@ export default function Cart() {
       setIsLoading(false);
     }
   };
-
-  const total = calculateTotal();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
