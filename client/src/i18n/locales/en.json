@@ -101,6 +101,7 @@
   "cart": {
     "title": "Shopping Cart",
     "empty": "Your cart is empty",
+    "emptyDescription": "Start shopping to add items to your cart",
     "continueShopping": "Continue Shopping",
     "checkout": "Proceed to Checkout",
     "fulfillmentType": "Fulfillment Type",
@@ -110,7 +111,11 @@
     "deliveryAddress": "Delivery Address",
     "orderSummary": "Order Summary",
     "placeOrder": "Place Order",
-    "orderPlaced": "Order Placed Successfully!"
+    "orderPlaced": "Order Placed Successfully!",
+    "removeItem": "Remove item",
+    "decreaseQuantity": "Decrease quantity",
+    "increaseQuantity": "Increase quantity",
+    "terms": "By placing an order, you agree to our terms and conditions."
   },
   "appointments": {
     "title": "Doctor Appointments",
