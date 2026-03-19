@@ -101,16 +101,27 @@
   "cart": {
     "title": "Carrito de Compras",
     "empty": "Tu carrito está vacío",
+    "emptyDescription": "Empieza a comprar para añadir artículos a tu carrito",
+    "backToMenu": "Volver al Menú",
     "continueShopping": "Continuar Comprando",
     "checkout": "Proceder al Pago",
     "fulfillmentType": "Tipo de Entrega",
     "pickup": "Recogida",
     "delivery": "Entrega",
     "estimatedReady": "Tiempo Estimado de Preparación",
+    "estimatedReadyValue": "2 horas",
     "deliveryAddress": "Dirección de Entrega",
+    "deliveryAddressPlaceholder": "Introduce tu dirección de entrega",
+    "deliveryAddressRequired": "Por favor, introduce una dirección de entrega",
     "orderSummary": "Resumen del Pedido",
     "placeOrder": "Realizar Pedido",
-    "orderPlaced": "¡Pedido Realizado Exitosamente!"
+    "processing": "Procesando...",
+    "orderPlaced": "¡Pedido Realizado Exitosamente!",
+    "orderFailed": "Error al realizar el pedido",
+    "terms": "Al realizar un pedido, aceptas nuestros términos y condiciones.",
+    "removeItem": "Quitar artículo",
+    "increaseQuantity": "Aumentar cantidad",
+    "decreaseQuantity": "Disminuir cantidad"
   },
   "appointments": {
     "title": "Citas Médicas",

@@ -101,16 +101,27 @@
   "cart": {
     "title": "Καλάθι Αγορών",
     "empty": "Το καλάθι σας είναι κενό",
+    "emptyDescription": "Ξεκινήστε τις αγορές σας για να προσθέσετε είδη στο καλάθι σας",
+    "backToMenu": "Επιστροφή στο Μενού",
     "continueShopping": "Συνέχιση Αγορών",
     "checkout": "Προχώρηση στο Ταμείο",
     "fulfillmentType": "Τύπος Εκπλήρωσης",
     "pickup": "Παραλαβή",
     "delivery": "Αποστολή",
     "estimatedReady": "Εκτιμώμενος Χρόνος Ετοιμότητας",
+    "estimatedReadyValue": "2 ώρες",
     "deliveryAddress": "Διεύθυνση Αποστολής",
+    "deliveryAddressPlaceholder": "Εισαγάγετε τη διεύθυνση παράδοσης",
+    "deliveryAddressRequired": "Παρακαλώ εισαγάγετε μια διεύθυνση παράδοσης",
     "orderSummary": "Περίληψη Παραggελίας",
     "placeOrder": "Τοποθέτηση Παραggελίας",
-    "orderPlaced": "Η Παραggελία Τοποθετήθηκε Επιτυχώς!"
+    "processing": "Επεξεργασία...",
+    "orderPlaced": "Η Παραggελία Τοποθετήθηκε Επιτυχώς!",
+    "orderFailed": "Αποτυχία τοποθέτησης παραγγελίας",
+    "terms": "Με την τοποθέτηση μιας παραγγελίας, συμφωνείτε με τους όρους και τις προϋποθέσεις μας.",
+    "removeItem": "Αφαίρεση είδους",
+    "increaseQuantity": "Αύξηση ποσότητας",
+    "decreaseQuantity": "Μείωση ποσότητας"
   },
   "appointments": {
     "title": "Ιατρικά Ραντεβού",

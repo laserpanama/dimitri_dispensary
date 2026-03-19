@@ -101,16 +101,27 @@
   "cart": {
     "title": "Warenkorb",
     "empty": "Ihr Warenkorb ist leer",
+    "emptyDescription": "Beginnen Sie mit dem Einkauf, um Artikel in Ihren Warenkorb zu legen",
+    "backToMenu": "Zurück zum Menü",
     "continueShopping": "Weiter einkaufen",
     "checkout": "Zur Kasse",
     "fulfillmentType": "Erfüllungstyp",
     "pickup": "Abholung",
     "delivery": "Lieferung",
     "estimatedReady": "Geschätzte Bereitschaftszeit",
+    "estimatedReadyValue": "2 Stunden",
     "deliveryAddress": "Lieferadresse",
+    "deliveryAddressPlaceholder": "Geben Sie Ihre Lieferadresse ein",
+    "deliveryAddressRequired": "Bitte geben Sie eine Lieferadresse ein",
     "orderSummary": "Bestellübersicht",
     "placeOrder": "Bestellung aufgeben",
-    "orderPlaced": "Bestellung erfolgreich aufgegeben!"
+    "processing": "Verarbeitung...",
+    "orderPlaced": "Bestellung erfolgreich aufgegeben!",
+    "orderFailed": "Bestellung fehlgeschlagen",
+    "terms": "Mit der Bestellung stimmen Sie unseren Allgemeinen Geschäftsbedingungen zu.",
+    "removeItem": "Artikel entfernen",
+    "increaseQuantity": "Menge erhöhen",
+    "decreaseQuantity": "Menge verringern"
   },
   "appointments": {
     "title": "Arztterminen",

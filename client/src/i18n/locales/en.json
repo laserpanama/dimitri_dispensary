@@ -101,16 +101,27 @@
   "cart": {
     "title": "Shopping Cart",
     "empty": "Your cart is empty",
+    "emptyDescription": "Start shopping to add items to your cart",
+    "backToMenu": "Back to Menu",
     "continueShopping": "Continue Shopping",
     "checkout": "Proceed to Checkout",
     "fulfillmentType": "Fulfillment Type",
     "pickup": "Pickup",
     "delivery": "Delivery",
     "estimatedReady": "Estimated Ready Time",
+    "estimatedReadyValue": "2 hours",
     "deliveryAddress": "Delivery Address",
+    "deliveryAddressPlaceholder": "Enter your delivery address",
+    "deliveryAddressRequired": "Please enter a delivery address",
     "orderSummary": "Order Summary",
     "placeOrder": "Place Order",
-    "orderPlaced": "Order Placed Successfully!"
+    "processing": "Processing...",
+    "orderPlaced": "Order Placed Successfully!",
+    "orderFailed": "Failed to place order",
+    "terms": "By placing an order, you agree to our terms and conditions.",
+    "removeItem": "Remove item",
+    "increaseQuantity": "Increase quantity",
+    "decreaseQuantity": "Decrease quantity"
   },
   "appointments": {
     "title": "Doctor Appointments",
