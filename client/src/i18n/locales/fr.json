@@ -101,16 +101,27 @@
   "cart": {
     "title": "Panier d'Achat",
     "empty": "Votre panier est vide",
+    "emptyDescription": "Commencez vos achats pour ajouter des articles à votre panier",
+    "backToMenu": "Retour au Menu",
     "continueShopping": "Continuer les Achats",
     "checkout": "Procéder au Paiement",
     "fulfillmentType": "Type de Livraison",
     "pickup": "Retrait",
     "delivery": "Livraison",
     "estimatedReady": "Délai d'Exécution Estimé",
+    "estimatedReadyValue": "2 heures",
     "deliveryAddress": "Adresse de Livraison",
+    "deliveryAddressPlaceholder": "Entrez votre adresse de livraison",
+    "deliveryAddressRequired": "Veuillez entrer une adresse de livraison",
     "orderSummary": "Résumé de la Commande",
     "placeOrder": "Passer la Commande",
-    "orderPlaced": "Commande Passée avec Succès!"
+    "processing": "Traitement...",
+    "orderPlaced": "Commande Passée avec Succès!",
+    "orderFailed": "Échec de la commande",
+    "terms": "En passant une commande, vous acceptez nos conditions générales.",
+    "removeItem": "Retirer l'article",
+    "increaseQuantity": "Augmenter la quantité",
+    "decreaseQuantity": "Diminuer la quantité"
   },
   "appointments": {
     "title": "Rendez-vous Médicaux",
