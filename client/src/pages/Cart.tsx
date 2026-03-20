@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
@@ -19,7 +19,6 @@ export default function Cart() {
   const [fulfillmentType, setFulfillmentType] = useState<"pickup" | "delivery">("pickup");
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [products, setProducts] = useState<Record<number, any>>({});
 
   const createOrderMutation = trpc.orders.create.useMutation();
 
@@ -29,19 +28,21 @@ export default function Cart() {
 
   // Optimization: Fetch only the products that are actually in the cart.
   // This avoids loading the entire product catalog, which improves performance as the catalog grows.
-  const { data: fetchedProducts = [] } = trpc.products.getByIds.useQuery(
+  const productsQuery = trpc.products.getByIds.useQuery(
     { ids: cartProductIds },
     { enabled: cartProductIds.length > 0 }
   );
 
-  useEffect(() => {
-    // Create product lookup from targeted fetch
+  // Performance Optimization: Derive product lookup directly from query data using useMemo.
+  // This eliminates a redundant render cycle and potential UI flicker caused by useEffect synchronization.
+  const products = useMemo(() => {
     const lookup: Record<number, any> = {};
+    const fetchedProducts = productsQuery.data ?? [];
     fetchedProducts.forEach((p) => {
       lookup[p.id] = p;
     });
-    setProducts(lookup);
-  }, [fetchedProducts]);
+    return lookup;
+  }, [productsQuery.data]);
 
   const handleRemoveItem = (productId: number) => {
     const updated = cartItems.filter((item) => item.productId !== productId);
@@ -62,13 +63,15 @@ export default function Cart() {
     localStorage.setItem("cartItems", JSON.stringify(updated));
   };
 
-  const calculateTotal = () => {
-    return cartItems.reduce((total, item) => {
+  // Performance Optimization: Memoize the total price calculation.
+  // This prevents unnecessary recalculations on every render unless cartItems or product data changes.
+  const total = useMemo(() => {
+    return cartItems.reduce((acc, item) => {
       const product = products[item.productId];
-      if (!product) return total;
-      return total + parseFloat(product.price) * item.quantity;
+      if (!product) return acc;
+      return acc + parseFloat(product.price) * item.quantity;
     }, 0);
-  };
+  }, [cartItems, products]);
 
   const handleCheckout = async () => {
     if (cartItems.length === 0) {
@@ -101,8 +104,6 @@ export default function Cart() {
       setIsLoading(false);
     }
   };
-
-  const total = calculateTotal();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">

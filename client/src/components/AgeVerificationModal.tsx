@@ -36,7 +36,9 @@ export default function AgeVerificationModal({ onVerified }: AgeVerificationModa
 
     setIsLoading(true);
     try {
-      await verifyMutation.mutateAsync({});
+      // The verify mutation doesn't take any input.
+      // Passing undefined to resolve TypeScript "Argument of type '{}' is not assignable to parameter of type 'void'" error.
+      await verifyMutation.mutateAsync(undefined);
       localStorage.setItem("ageVerified", "true");
       localStorage.setItem("ageVerifiedAt", new Date().toISOString());
       onVerified();
