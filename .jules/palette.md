@@ -1,3 +1,7 @@
 ## 2025-01-24 - [Accessible Action Buttons and Image Fallbacks]
 **Learning:** Icon-only buttons (like "Add to Cart") require explicit `aria-label` attributes to be accessible. For buttons that are disabled (e.g., "Out of Stock"), appending the state to the label (e.g., "Add to cart (Out of Stock)") provides immediate context to screen reader users. Additionally, providing a thematic fallback icon (e.g., a `Leaf` icon for a dispensary) for failed image loads ensures the UI remains polished and meaningful even when assets are missing.
 **Action:** Always wrap icon-only buttons in `Tooltip` components and provide descriptive `aria-label` attributes. Implement `onError` handlers on product images to show high-quality fallback icons.
+
+## 2025-01-24 - [Accessible Cart Interactions & Localization Polish]
+**Learning:** Hardcoded strings in core UI components like the Shopping Cart prevent both internationalization and accessibility (ARIA labels). Ensuring that action-oriented icon buttons (quantity adjustments, removal) are wrapped in Tooltips and have localized aria-labels is essential for a high-quality, inclusive experience. Additionally, inconsistent spelling in localized files (e.g., Greek "παραggελία" vs "παραγγελία") degrades trust in the interface.
+**Action:** When auditing components, prioritize the replacement of hardcoded strings with i18n keys and immediately verify that every icon-only button has an associated `aria-label`. Use `useLocation` from `wouter` for all internal navigations to maintain SPA fluidity.
