@@ -1,9 +1,15 @@
 import { useState, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import { ArrowLeft, Trash2, ShoppingCart } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { toast } from "sonner";
 
 interface CartItem {
@@ -12,6 +18,7 @@ interface CartItem {
 }
 
 export default function Cart() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [cartItems, setCartItems] = useState<CartItem[]>(() =>
     JSON.parse(localStorage.getItem("cartItems") || "[]")
@@ -47,6 +54,7 @@ export default function Cart() {
     const updated = cartItems.filter((item) => item.productId !== productId);
     setCartItems(updated);
     localStorage.setItem("cartItems", JSON.stringify(updated));
+    toast.success(t("cart.itemRemoved"));
   };
 
   const handleUpdateQuantity = (productId: number, quantity: number) => {
@@ -72,12 +80,12 @@ export default function Cart() {
 
   const handleCheckout = async () => {
     if (cartItems.length === 0) {
-      toast.error("Your cart is empty");
+      toast.error(t("cart.empty"));
       return;
     }
 
     if (fulfillmentType === "delivery" && !deliveryAddress) {
-      toast.error("Please enter a delivery address");
+      toast.error(t("cart.deliveryAddressRequired"));
       return;
     }
 
@@ -91,12 +99,12 @@ export default function Cart() {
 
       localStorage.removeItem("cartItems");
       setCartItems([]);
-      toast.success("Order placed successfully!");
+      toast.success(t("cart.orderPlaced"));
       setTimeout(() => {
         window.location.href = "/orders";
       }, 1000);
     } catch (error) {
-      toast.error("Failed to place order");
+      toast.error(t("cart.orderFailed"));
     } finally {
       setIsLoading(false);
     }
@@ -112,10 +120,10 @@ export default function Cart() {
           <Link href="/menu">
             <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Menu
+              {t("cart.backToMenu")}
             </Button>
           </Link>
-          <h1 className="text-2xl font-bold text-white">Shopping Cart</h1>
+          <h1 className="text-2xl font-bold text-white">{t("cart.title")}</h1>
         </div>
       </div>
 
@@ -123,11 +131,11 @@ export default function Cart() {
         {cartItems.length === 0 ? (
           <div className="text-center py-20">
             <ShoppingCart className="w-20 h-20 text-gray-600 mx-auto mb-6" />
-            <h2 className="text-2xl font-bold text-white mb-4">Your cart is empty</h2>
-            <p className="text-gray-300 mb-8">Start shopping to add items to your cart</p>
+            <h2 className="text-2xl font-bold text-white mb-4">{t("cart.empty")}</h2>
+            <p className="text-gray-300 mb-8">{t("cart.continueShoppingDescription")}</p>
             <Link href="/menu">
               <Button className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700">
-                Continue Shopping
+                {t("cart.continueShopping")}
               </Button>
             </Link>
           </div>
@@ -156,29 +164,47 @@ export default function Cart() {
 
                     <div className="flex items-center gap-4">
                       <div className="flex items-center border border-green-500/50 rounded-lg">
-                        <button
-                          onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
-                          className="px-3 py-2 text-green-400 hover:bg-green-500/20"
-                        >
-                          −
-                        </button>
-                        <span className="px-4 py-2 text-white font-semibold">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
+                              className="px-3 py-2 text-green-400 hover:bg-green-500/20"
+                              aria-label={t("cart.decreaseQuantity")}
+                            >
+                              −
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>{t("cart.decreaseQuantity")}</TooltipContent>
+                        </Tooltip>
+                        <span className="px-4 py-2 text-white font-semibold" aria-live="polite">
                           {item.quantity}
                         </span>
-                        <button
-                          onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
-                          className="px-3 py-2 text-green-400 hover:bg-green-500/20"
-                        >
-                          +
-                        </button>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
+                              className="px-3 py-2 text-green-400 hover:bg-green-500/20"
+                              aria-label={t("cart.increaseQuantity")}
+                            >
+                              +
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>{t("cart.increaseQuantity")}</TooltipContent>
+                        </Tooltip>
                       </div>
 
-                      <button
-                        onClick={() => handleRemoveItem(item.productId)}
-                        className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={() => handleRemoveItem(item.productId)}
+                            className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+                            aria-label={t("cart.removeItem")}
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>{t("cart.removeItem")}</TooltipContent>
+                      </Tooltip>
                     </div>
                   </div>
                 );
@@ -187,12 +213,12 @@ export default function Cart() {
 
             {/* Order Summary */}
             <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-2xl p-8 backdrop-blur-sm h-fit sticky top-24">
-              <h2 className="text-2xl font-bold text-white mb-6">Order Summary</h2>
+              <h2 className="text-2xl font-bold text-white mb-6">{t("cart.orderSummary")}</h2>
 
               {/* Fulfillment Type */}
               <div className="mb-6">
                 <label className="block text-sm font-semibold text-gray-300 mb-3">
-                  Fulfillment Type
+                  {t("cart.fulfillmentType")}
                 </label>
                 <div className="space-y-2">
                   <label className="flex items-center p-3 border border-green-500/30 rounded-lg cursor-pointer hover:bg-green-500/10">
@@ -204,7 +230,7 @@ export default function Cart() {
                       onChange={(e) => setFulfillmentType(e.target.value as "pickup")}
                       className="mr-3"
                     />
-                    <span className="text-white">Pickup</span>
+                    <span className="text-white">{t("cart.pickup")}</span>
                   </label>
                   <label className="flex items-center p-3 border border-green-500/30 rounded-lg cursor-pointer hover:bg-green-500/10">
                     <input
@@ -215,7 +241,7 @@ export default function Cart() {
                       onChange={(e) => setFulfillmentType(e.target.value as "delivery")}
                       className="mr-3"
                     />
-                    <span className="text-white">Delivery</span>
+                    <span className="text-white">{t("cart.delivery")}</span>
                   </label>
                 </div>
               </div>
@@ -224,12 +250,12 @@ export default function Cart() {
               {fulfillmentType === "delivery" && (
                 <div className="mb-6">
                   <label className="block text-sm font-semibold text-gray-300 mb-2">
-                    Delivery Address
+                    {t("cart.deliveryAddress")}
                   </label>
                   <textarea
                     value={deliveryAddress}
                     onChange={(e) => setDeliveryAddress(e.target.value)}
-                    placeholder="Enter your delivery address"
+                    placeholder={t("cart.deliveryAddressPlaceholder")}
                     className="w-full px-4 py-3 bg-slate-800/50 border border-green-500/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
                     rows={3}
                   />
@@ -239,15 +265,15 @@ export default function Cart() {
               {/* Pricing */}
               <div className="space-y-3 mb-6 pb-6 border-b border-green-500/30">
                 <div className="flex justify-between text-gray-300">
-                  <span>Subtotal</span>
+                  <span>{t("common.subtotal")}</span>
                   <span>${total.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-gray-300">
-                  <span>Estimated Ready Time</span>
-                  <span>2 hours</span>
+                  <span>{t("cart.estimatedReady")}</span>
+                  <span>{t("cart.estimatedReadyValue")}</span>
                 </div>
                 <div className="flex justify-between text-xl font-bold text-green-400">
-                  <span>Total</span>
+                  <span>{t("common.total")}</span>
                   <span>${total.toFixed(2)}</span>
                 </div>
               </div>
@@ -256,13 +282,14 @@ export default function Cart() {
               <Button
                 onClick={handleCheckout}
                 disabled={isLoading}
+                aria-label={t("cart.placeOrder")}
                 className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-3"
               >
-                {isLoading ? "Processing..." : "Place Order"}
+                {isLoading ? t("cart.processing") : t("cart.placeOrder")}
               </Button>
 
               <p className="text-xs text-gray-400 text-center mt-4">
-                By placing an order, you agree to our terms and conditions.
+                {t("cart.terms")}
               </p>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Leaf } from "lucide-react";
 import { Product } from "@shared/types";
@@ -14,6 +15,7 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
+  const { t } = useTranslation();
   const [hasImageError, setHasImageError] = useState(false);
 
   return (
@@ -64,14 +66,16 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
             <Button
               onClick={() => onAddToCart(product.id)}
               disabled={product.quantity === 0}
-              aria-label={`Add ${product.name} to cart${product.quantity === 0 ? " (Out of stock)" : ""}`}
+              aria-label={`${t("menu.addToCart")} ${product.name}${
+                product.quantity === 0 ? ` (${t("menu.outOfStock")})` : ""
+              }`}
               className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
             >
               <ShoppingCart className="w-4 h-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            {product.quantity === 0 ? "Out of stock" : "Add to cart"}
+            {product.quantity === 0 ? t("menu.outOfStock") : t("menu.addToCart")}
           </TooltipContent>
         </Tooltip>
       </div>
