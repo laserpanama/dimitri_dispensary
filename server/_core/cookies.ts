@@ -42,7 +42,9 @@ export function getSessionCookieOptions(
   return {
     httpOnly: true,
     path: "/",
-    sameSite: "none",
+    // Using 'lax' for session cookies to provide better CSRF protection
+    // while maintaining compatibility with standard navigation flows.
+    sameSite: "lax",
     secure: isSecureRequest(req),
   };
 }
