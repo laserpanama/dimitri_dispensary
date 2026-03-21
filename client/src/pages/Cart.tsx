@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { usePersistFn } from "@/hooks/usePersistFn";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
@@ -18,13 +19,11 @@ export default function Cart() {
   );
   const [fulfillmentType, setFulfillmentType] = useState<"pickup" | "delivery">("pickup");
   const [deliveryAddress, setDeliveryAddress] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [products, setProducts] = useState<Record<number, any>>({});
 
   const createOrderMutation = trpc.orders.create.useMutation();
 
   // Get cart item IDs for fetching product details.
-  // We derive this from state and memoize it to avoid unnecessary recalculations and localStorage reads.
+  // We derive this from state and memoize it to avoid unnecessary recalculations.
   const cartProductIds = useMemo(() => cartItems.map((item) => item.productId), [cartItems]);
 
   // Optimization: Fetch only the products that are actually in the cart.
@@ -34,22 +33,23 @@ export default function Cart() {
     { enabled: cartProductIds.length > 0 }
   );
 
-  useEffect(() => {
-    // Create product lookup from targeted fetch
+  // Optimization: Replace useEffect + useState with useMemo to derive the products lookup
+  // synchronously during the render phase, eliminating an extra render cycle.
+  const products = useMemo(() => {
     const lookup: Record<number, any> = {};
     fetchedProducts.forEach((p) => {
       lookup[p.id] = p;
     });
-    setProducts(lookup);
+    return lookup;
   }, [fetchedProducts]);
 
-  const handleRemoveItem = (productId: number) => {
+  const handleRemoveItem = usePersistFn((productId: number) => {
     const updated = cartItems.filter((item) => item.productId !== productId);
     setCartItems(updated);
     localStorage.setItem("cartItems", JSON.stringify(updated));
-  };
+  });
 
-  const handleUpdateQuantity = (productId: number, quantity: number) => {
+  const handleUpdateQuantity = usePersistFn((productId: number, quantity: number) => {
     if (quantity <= 0) {
       handleRemoveItem(productId);
       return;
@@ -60,17 +60,19 @@ export default function Cart() {
     );
     setCartItems(updated);
     localStorage.setItem("cartItems", JSON.stringify(updated));
-  };
+  });
 
-  const calculateTotal = () => {
-    return cartItems.reduce((total, item) => {
+  // Optimization: Memoize total calculation to avoid recomputing on every render
+  // unless cartItems or products lookup changes.
+  const total = useMemo(() => {
+    return cartItems.reduce((acc, item) => {
       const product = products[item.productId];
-      if (!product) return total;
-      return total + parseFloat(product.price) * item.quantity;
+      if (!product) return acc;
+      return acc + parseFloat(product.price) * item.quantity;
     }, 0);
-  };
+  }, [cartItems, products]);
 
-  const handleCheckout = async () => {
+  const handleCheckout = usePersistFn(async () => {
     if (cartItems.length === 0) {
       toast.error("Your cart is empty");
       return;
@@ -81,7 +83,6 @@ export default function Cart() {
       return;
     }
 
-    setIsLoading(true);
     try {
       await createOrderMutation.mutateAsync({
         items: cartItems,
@@ -97,12 +98,8 @@ export default function Cart() {
       }, 1000);
     } catch (error) {
       toast.error("Failed to place order");
-    } finally {
-      setIsLoading(false);
     }
-  };
-
-  const total = calculateTotal();
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
@@ -255,10 +252,10 @@ export default function Cart() {
               {/* Checkout Button */}
               <Button
                 onClick={handleCheckout}
-                disabled={isLoading}
+                disabled={createOrderMutation.isPending}
                 className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-3"
               >
-                {isLoading ? "Processing..." : "Place Order"}
+                {createOrderMutation.isPending ? "Processing..." : "Place Order"}
               </Button>
 
               <p className="text-xs text-gray-400 text-center mt-4">
