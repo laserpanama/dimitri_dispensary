@@ -18,14 +18,17 @@ export default function Cart() {
   );
   const [fulfillmentType, setFulfillmentType] = useState<"pickup" | "delivery">("pickup");
   const [deliveryAddress, setDeliveryAddress] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [products, setProducts] = useState<Record<number, any>>({});
 
   const createOrderMutation = trpc.orders.create.useMutation();
 
   // Get cart item IDs for fetching product details.
   // We derive this from state and memoize it to avoid unnecessary recalculations and localStorage reads.
-  const cartProductIds = useMemo(() => cartItems.map((item) => item.productId), [cartItems]);
+  // Optimization: We join the IDs into a string for the dependency array to prevent
+  // re-fetching when only item quantities change, even though the array reference might change.
+  const cartProductIds = useMemo(
+    () => cartItems.map((item) => item.productId),
+    [cartItems.map((item) => item.productId).join(",")]
+  );
 
   // Optimization: Fetch only the products that are actually in the cart.
   // This avoids loading the entire product catalog, which improves performance as the catalog grows.
@@ -34,13 +37,14 @@ export default function Cart() {
     { enabled: cartProductIds.length > 0 }
   );
 
-  useEffect(() => {
-    // Create product lookup from targeted fetch
+  // Optimization: Derive product lookup directly from fetched data using useMemo.
+  // This eliminates an extra render cycle that was caused by useEffect + useState.
+  const productsLookup = useMemo(() => {
     const lookup: Record<number, any> = {};
     fetchedProducts.forEach((p) => {
       lookup[p.id] = p;
     });
-    setProducts(lookup);
+    return lookup;
   }, [fetchedProducts]);
 
   const handleRemoveItem = (productId: number) => {
@@ -62,13 +66,15 @@ export default function Cart() {
     localStorage.setItem("cartItems", JSON.stringify(updated));
   };
 
-  const calculateTotal = () => {
-    return cartItems.reduce((total, item) => {
-      const product = products[item.productId];
-      if (!product) return total;
-      return total + parseFloat(product.price) * item.quantity;
+  // Optimization: Memoize the total price calculation.
+  // This prevents expensive re-calculations on unrelated renders, such as typing in the delivery address.
+  const total = useMemo(() => {
+    return cartItems.reduce((acc, item) => {
+      const product = productsLookup[item.productId];
+      if (!product) return acc;
+      return acc + parseFloat(product.price) * item.quantity;
     }, 0);
-  };
+  }, [cartItems, productsLookup]);
 
   const handleCheckout = async () => {
     if (cartItems.length === 0) {
@@ -81,8 +87,8 @@ export default function Cart() {
       return;
     }
 
-    setIsLoading(true);
     try {
+      // Optimization: Use createOrderMutation.isPending instead of manual isLoading state.
       await createOrderMutation.mutateAsync({
         items: cartItems,
         fulfillmentType,
@@ -97,12 +103,8 @@ export default function Cart() {
       }, 1000);
     } catch (error) {
       toast.error("Failed to place order");
-    } finally {
-      setIsLoading(false);
     }
   };
-
-  const total = calculateTotal();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
@@ -136,7 +138,7 @@ export default function Cart() {
             {/* Cart Items */}
             <div className="lg:col-span-2 space-y-4">
               {cartItems.map((item) => {
-                const product = products[item.productId];
+                const product = productsLookup[item.productId];
                 if (!product) return null;
 
                 return (
@@ -255,10 +257,10 @@ export default function Cart() {
               {/* Checkout Button */}
               <Button
                 onClick={handleCheckout}
-                disabled={isLoading}
+                disabled={createOrderMutation.isPending}
                 className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-3"
               >
-                {isLoading ? "Processing..." : "Place Order"}
+                {createOrderMutation.isPending ? "Processing..." : "Place Order"}
               </Button>
 
               <p className="text-xs text-gray-400 text-center mt-4">
