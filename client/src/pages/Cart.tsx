@@ -158,15 +158,17 @@ export default function Cart() {
                       <div className="flex items-center border border-green-500/50 rounded-lg">
                         <button
                           onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
+                          aria-label={`Decrease quantity of ${product.name}`}
                           className="px-3 py-2 text-green-400 hover:bg-green-500/20"
                         >
                           −
                         </button>
-                        <span className="px-4 py-2 text-white font-semibold">
+                        <span className="px-4 py-2 text-white font-semibold" aria-live="polite">
                           {item.quantity}
                         </span>
                         <button
                           onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
+                          aria-label={`Increase quantity of ${product.name}`}
                           className="px-3 py-2 text-green-400 hover:bg-green-500/20"
                         >
                           +
@@ -175,6 +177,7 @@ export default function Cart() {
 
                       <button
                         onClick={() => handleRemoveItem(item.productId)}
+                        aria-label={`Remove ${product.name} from cart`}
                         className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
                       >
                         <Trash2 className="w-5 h-5" />
@@ -223,10 +226,11 @@ export default function Cart() {
               {/* Delivery Address */}
               {fulfillmentType === "delivery" && (
                 <div className="mb-6">
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">
+                  <label htmlFor="deliveryAddress" className="block text-sm font-semibold text-gray-300 mb-2">
                     Delivery Address
                   </label>
                   <textarea
+                    id="deliveryAddress"
                     value={deliveryAddress}
                     onChange={(e) => setDeliveryAddress(e.target.value)}
                     placeholder="Enter your delivery address"
