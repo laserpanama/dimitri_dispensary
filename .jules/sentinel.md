@@ -2,3 +2,8 @@
 **Vulnerability:** The `ageVerification.verify` procedure accepted a client-provided `ipAddress`, which could be spoofed. Additionally, the Express server was missing standard security headers and exposed the `X-Powered-By` header.
 **Learning:** Even when using tRPC, sensitive metadata like IP addresses should be resolved server-side from trusted sources (like `req.ip` with `trust proxy` enabled) rather than accepted as input. Relying on `x-forwarded-for` manually without `trust proxy` can also be risky or inconsistent.
 **Prevention:** Always use server-side session/request properties for security-critical data. Harden Express servers by default with `app.disable("x-powered-by")` and essential security headers. Ensure tests mock the full context required by these security measures (e.g., adding `ip` to mock requests).
+
+## 2025-05-23 - [Session Hardening and DoS Mitigation]
+**Vulnerability:** Session cookies used `SameSite=None`, increasing CSRF risk. The server lacked a `Referrer-Policy` header, potentially leaking sensitive information in the `Referer` header. Large request bodies (up to 50MB) were permitted, posing a DoS risk.
+**Learning:** Default cookie settings should always prioritize security (e.g., `SameSite=Lax`) unless cross-site functionality is explicitly required. Security headers like `Referrer-Policy` provide an important layer of privacy. Explicitly limiting request payload sizes is a simple but effective defense against resource exhaustion.
+**Prevention:** Configure session cookies with `SameSite: "lax"`. Implement a comprehensive set of security headers (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`). Set conservative limits on body parsers (e.g., 10MB) and only increase them if a specific use case warrants it.
