@@ -5,3 +5,7 @@
 ## 2025-05-16 - [Database Indexing for Common Query Paths]
 **Learning:** Identifying frequently queried foreign keys (e.g., `userId` in `orders`, `appointments`, `notifications`) and filtering columns (e.g., `category` in `products`) and adding explicit MySQL indexes significantly improves query performance by avoiding full table scans (converting O(N) operations to O(log N)).
 **Action:** Always verify schema definitions and query patterns to ensure all columns used in `WHERE` clauses, `JOIN` conditions, or `ORDER BY` clauses are properly indexed. Use descriptive naming conventions (e.g., `table_column_idx`) for maintainability.
+
+## 2026-03-25 - [Indexing Enums for Status-Based Queries]
+**Learning:** The `chatConversations` table was frequently queried by its `status` column (waiting, active) to manage user and agent sessions. Adding a MySQL index to this `mysqlEnum` column optimizes these lookups, reducing search time from O(N) to O(log N) and preventing full table scans as conversation history grows.
+**Action:** Identify columns used for session management or lifecycle state (like `status`) and ensure they are indexed to maintain application responsiveness.

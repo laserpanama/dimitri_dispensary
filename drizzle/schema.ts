@@ -269,9 +269,10 @@ export const chatConversations = mysqlTable("chatConversations", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => ({
-  // Optimization: Indexes on userId and agentId for faster conversation retrieval
+  // Optimization: Indexes for faster conversation retrieval and filtering by user, agent or status
   userIdIdx: index("chatConversations_userId_idx").on(table.userId),
   agentIdIdx: index("chatConversations_agentId_idx").on(table.agentId),
+  statusIdx: index("chatConversations_status_idx").on(table.status),
 }));
 
 export type ChatConversation = typeof chatConversations.$inferSelect;
