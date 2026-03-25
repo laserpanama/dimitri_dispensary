@@ -1,4 +1,4 @@
-import { router, protectedProcedure, publicProcedure } from "./_core/trpc";
+import { router, protectedProcedure, publicProcedure, adminProcedure } from "./_core/trpc";
 import { z } from "zod";
 import {
   getOrCreateConversation,
@@ -160,21 +160,13 @@ export const chatRouter = router({
     return await getOnlineAgents();
   }),
 
-  getActiveConversations: protectedProcedure.query(async ({ ctx }) => {
-    // Only admins can see all conversations
-    if (ctx.user?.role !== "admin") {
-      throw new TRPCError({ code: "FORBIDDEN" });
-    }
+  getActiveConversations: adminProcedure.query(async () => {
     return await getActiveConversations();
   }),
 
-  assignToAgent: protectedProcedure
+  assignToAgent: adminProcedure
     .input(z.object({ conversationId: z.number(), agentId: z.number() }))
-    .mutation(async ({ input, ctx }) => {
-      // Only admins can assign conversations
-      if (ctx.user?.role !== "admin") {
-        throw new TRPCError({ code: "FORBIDDEN" });
-      }
+    .mutation(async ({ input }) => {
       const success = await assignConversationToAgent(
         input.conversationId,
         input.agentId
@@ -185,10 +177,10 @@ export const chatRouter = router({
       return { success: true };
     }),
 
-  updateAgentStatus: protectedProcedure
+  updateAgentStatus: adminProcedure
     .input(z.object({ status: z.enum(["online", "offline", "away"]) }))
     .mutation(async ({ input, ctx }) => {
-      // Agents can only update their own status
+      // Agents (admins) can only update their own status
       const success = await updateAgentStatus(ctx.user.id, input.status);
       if (!success) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
