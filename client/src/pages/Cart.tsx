@@ -2,9 +2,10 @@ import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { ArrowLeft, Trash2, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
+import { Spinner } from "@/components/ui/spinner";
 
 interface CartItem {
   productId: number;
@@ -13,6 +14,7 @@ interface CartItem {
 
 export default function Cart() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const [cartItems, setCartItems] = useState<CartItem[]>(() =>
     JSON.parse(localStorage.getItem("cartItems") || "[]")
   );
@@ -93,7 +95,7 @@ export default function Cart() {
       setCartItems([]);
       toast.success("Order placed successfully!");
       setTimeout(() => {
-        window.location.href = "/orders";
+        setLocation("/orders");
       }, 1000);
     } catch (error) {
       toast.error("Failed to place order");
@@ -158,16 +160,21 @@ export default function Cart() {
                       <div className="flex items-center border border-green-500/50 rounded-lg">
                         <button
                           onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
-                          className="px-3 py-2 text-green-400 hover:bg-green-500/20"
+                          className="px-3 py-2 text-green-400 hover:bg-green-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500 rounded-l-lg transition-colors"
+                          aria-label={`Decrease quantity of ${product.name}`}
                         >
                           −
                         </button>
-                        <span className="px-4 py-2 text-white font-semibold">
+                        <span
+                          className="px-4 py-2 text-white font-semibold"
+                          aria-live="polite"
+                        >
                           {item.quantity}
                         </span>
                         <button
                           onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
-                          className="px-3 py-2 text-green-400 hover:bg-green-500/20"
+                          className="px-3 py-2 text-green-400 hover:bg-green-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500 rounded-r-lg transition-colors"
+                          aria-label={`Increase quantity of ${product.name}`}
                         >
                           +
                         </button>
@@ -175,7 +182,8 @@ export default function Cart() {
 
                       <button
                         onClick={() => handleRemoveItem(item.productId)}
-                        className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+                        className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                        aria-label={`Remove ${product.name} from cart`}
                       >
                         <Trash2 className="w-5 h-5" />
                       </button>
@@ -223,14 +231,18 @@ export default function Cart() {
               {/* Delivery Address */}
               {fulfillmentType === "delivery" && (
                 <div className="mb-6">
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">
+                  <label
+                    htmlFor="deliveryAddress"
+                    className="block text-sm font-semibold text-gray-300 mb-2"
+                  >
                     Delivery Address
                   </label>
                   <textarea
+                    id="deliveryAddress"
                     value={deliveryAddress}
                     onChange={(e) => setDeliveryAddress(e.target.value)}
                     placeholder="Enter your delivery address"
-                    className="w-full px-4 py-3 bg-slate-800/50 border border-green-500/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full px-4 py-3 bg-slate-800/50 border border-green-500/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500 transition-all"
                     rows={3}
                   />
                 </div>
@@ -256,9 +268,16 @@ export default function Cart() {
               <Button
                 onClick={handleCheckout}
                 disabled={isLoading}
-                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-3"
+                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-3 flex items-center justify-center gap-2"
               >
-                {isLoading ? "Processing..." : "Place Order"}
+                {isLoading ? (
+                  <>
+                    <Spinner className="w-5 h-5" />
+                    Processing...
+                  </>
+                ) : (
+                  "Place Order"
+                )}
               </Button>
 
               <p className="text-xs text-gray-400 text-center mt-4">
