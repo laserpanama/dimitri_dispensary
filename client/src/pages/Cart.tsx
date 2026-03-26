@@ -18,14 +18,17 @@ export default function Cart() {
   );
   const [fulfillmentType, setFulfillmentType] = useState<"pickup" | "delivery">("pickup");
   const [deliveryAddress, setDeliveryAddress] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [products, setProducts] = useState<Record<number, any>>({});
 
   const createOrderMutation = trpc.orders.create.useMutation();
 
-  // Get cart item IDs for fetching product details.
-  // We derive this from state and memoize it to avoid unnecessary recalculations and localStorage reads.
-  const cartProductIds = useMemo(() => cartItems.map((item) => item.productId), [cartItems]);
+  // Optimization: Stabilize the dependency key for product fetching.
+  // Using a sorted join-key string ensures that re-fetches are NOT triggered when only quantities change.
+  // This reduces redundant network requests and server load.
+  const cartProductIdsKey = useMemo(
+    () => [...cartItems].map((i) => i.productId).sort().join(","),
+    [cartItems]
+  );
+  const cartProductIds = useMemo(() => cartItems.map((item) => item.productId), [cartProductIdsKey]);
 
   // Optimization: Fetch only the products that are actually in the cart.
   // This avoids loading the entire product catalog, which improves performance as the catalog grows.
@@ -34,13 +37,14 @@ export default function Cart() {
     { enabled: cartProductIds.length > 0 }
   );
 
-  useEffect(() => {
-    // Create product lookup from targeted fetch
+  // Optimization: Replace the manual useState + useEffect lookup table with useMemo.
+  // This eliminates a redundant render cycle and ensures the lookup table is always in sync with fetched data.
+  const products = useMemo(() => {
     const lookup: Record<number, any> = {};
     fetchedProducts.forEach((p) => {
       lookup[p.id] = p;
     });
-    setProducts(lookup);
+    return lookup;
   }, [fetchedProducts]);
 
   const handleRemoveItem = (productId: number) => {
@@ -62,13 +66,15 @@ export default function Cart() {
     localStorage.setItem("cartItems", JSON.stringify(updated));
   };
 
-  const calculateTotal = () => {
+  // Optimization: Memoize the total price calculation.
+  // This prevents expensive re-computations during unrelated UI updates (like typing in the delivery address).
+  const total = useMemo(() => {
     return cartItems.reduce((total, item) => {
       const product = products[item.productId];
       if (!product) return total;
       return total + parseFloat(product.price) * item.quantity;
     }, 0);
-  };
+  }, [cartItems, products]);
 
   const handleCheckout = async () => {
     if (cartItems.length === 0) {
@@ -81,7 +87,6 @@ export default function Cart() {
       return;
     }
 
-    setIsLoading(true);
     try {
       await createOrderMutation.mutateAsync({
         items: cartItems,
@@ -97,12 +102,8 @@ export default function Cart() {
       }, 1000);
     } catch (error) {
       toast.error("Failed to place order");
-    } finally {
-      setIsLoading(false);
     }
   };
-
-  const total = calculateTotal();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
@@ -255,10 +256,10 @@ export default function Cart() {
               {/* Checkout Button */}
               <Button
                 onClick={handleCheckout}
-                disabled={isLoading}
+                disabled={createOrderMutation.isPending}
                 className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-3"
               >
-                {isLoading ? "Processing..." : "Place Order"}
+                {createOrderMutation.isPending ? "Processing..." : "Place Order"}
               </Button>
 
               <p className="text-xs text-gray-400 text-center mt-4">
