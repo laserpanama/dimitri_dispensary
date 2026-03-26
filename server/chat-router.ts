@@ -1,4 +1,4 @@
-import { router, protectedProcedure, publicProcedure } from "./_core/trpc";
+import { router, protectedProcedure, publicProcedure, adminProcedure } from "./_core/trpc";
 import { z } from "zod";
 import {
   getOrCreateConversation,
@@ -185,7 +185,7 @@ export const chatRouter = router({
       return { success: true };
     }),
 
-  updateAgentStatus: protectedProcedure
+  updateAgentStatus: adminProcedure
     .input(z.object({ status: z.enum(["online", "offline", "away"]) }))
     .mutation(async ({ input, ctx }) => {
       // Agents can only update their own status

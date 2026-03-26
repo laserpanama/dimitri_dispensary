@@ -286,8 +286,8 @@ describe("Chat Feature", () => {
     expect(result.success).toBe(true);
   });
 
-  it("should update agent status", async () => {
-    const { ctx } = createAuthContext();
+  it("should update agent status when admin", async () => {
+    const { ctx } = createAuthContext("admin");
     const caller = appRouter.createCaller(ctx);
 
     const result = await caller.chat.updateAgentStatus({
