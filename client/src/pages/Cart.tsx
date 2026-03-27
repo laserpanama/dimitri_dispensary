@@ -5,6 +5,11 @@ import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import { ArrowLeft, Trash2, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface CartItem {
   productId: number;
@@ -156,29 +161,50 @@ export default function Cart() {
 
                     <div className="flex items-center gap-4">
                       <div className="flex items-center border border-green-500/50 rounded-lg">
-                        <button
-                          onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
-                          className="px-3 py-2 text-green-400 hover:bg-green-500/20"
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
+                              className="px-3 py-2 text-green-400 hover:bg-green-500/20"
+                              aria-label={`Decrease quantity of ${product.name}`}
+                            >
+                              −
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>Decrease quantity</TooltipContent>
+                        </Tooltip>
+                        <span
+                          className="px-4 py-2 text-white font-semibold"
+                          aria-live="polite"
                         >
-                          −
-                        </button>
-                        <span className="px-4 py-2 text-white font-semibold">
                           {item.quantity}
                         </span>
-                        <button
-                          onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
-                          className="px-3 py-2 text-green-400 hover:bg-green-500/20"
-                        >
-                          +
-                        </button>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
+                              className="px-3 py-2 text-green-400 hover:bg-green-500/20"
+                              aria-label={`Increase quantity of ${product.name}`}
+                            >
+                              +
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>Increase quantity</TooltipContent>
+                        </Tooltip>
                       </div>
 
-                      <button
-                        onClick={() => handleRemoveItem(item.productId)}
-                        className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={() => handleRemoveItem(item.productId)}
+                            className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+                            aria-label={`Remove ${product.name} from cart`}
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>Remove item</TooltipContent>
+                      </Tooltip>
                     </div>
                   </div>
                 );
