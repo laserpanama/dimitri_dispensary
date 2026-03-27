@@ -114,7 +114,7 @@ export const appRouter = router({
             })
           ),
           fulfillmentType: z.enum(["pickup", "delivery"]),
-          deliveryAddress: z.string().optional(),
+          deliveryAddress: z.string().max(1000).optional(),
         })
       )
       .mutation(async ({ input, ctx }) => {
@@ -212,7 +212,7 @@ export const appRouter = router({
         z.object({
           appointmentTime: z.date(),
           consultationType: z.enum(["initial_consultation", "follow_up", "product_recommendation"]),
-          notes: z.string().optional(),
+          notes: z.string().max(2000).optional(),
         })
       )
       .mutation(async ({ input, ctx }) => {
