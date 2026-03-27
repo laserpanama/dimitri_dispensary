@@ -286,8 +286,22 @@ describe("Chat Feature", () => {
     expect(result.success).toBe(true);
   });
 
-  it("should update agent status", async () => {
-    const { ctx } = createAuthContext();
+  it("should require admin to update agent status", async () => {
+    const { ctx } = createAuthContext("user");
+    const caller = appRouter.createCaller(ctx);
+
+    try {
+      await caller.chat.updateAgentStatus({
+        status: "online",
+      });
+      expect.fail("Should have thrown error");
+    } catch (error: any) {
+      expect(error.code).toBe("FORBIDDEN");
+    }
+  });
+
+  it("should allow admin to update agent status", async () => {
+    const { ctx } = createAuthContext("admin");
     const caller = appRouter.createCaller(ctx);
 
     const result = await caller.chat.updateAgentStatus({

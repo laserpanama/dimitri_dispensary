@@ -115,4 +115,45 @@ describe("Chat Security (IDOR)", () => {
       expect(error.code).toBe("FORBIDDEN");
     }
   });
+
+  it("should prevent a user from assigning a conversation", async () => {
+    const userCtx = createAuthContext(1, "user").ctx;
+    const caller = appRouter.createCaller(userCtx);
+
+    try {
+      await caller.chat.assignToAgent({ conversationId: 1, agentId: 2 });
+      expect.fail("Should have thrown FORBIDDEN error");
+    } catch (error: any) {
+      if (error.name === 'AssertionError') throw error;
+      expect(error.code).toBe("FORBIDDEN");
+    }
+  });
+
+  it("should prevent a user from updating agent status", async () => {
+    const userCtx = createAuthContext(1, "user").ctx;
+    const caller = appRouter.createCaller(userCtx);
+
+    try {
+      await caller.chat.updateAgentStatus({ status: "online" });
+      expect.fail("Should have thrown FORBIDDEN error");
+    } catch (error: any) {
+      if (error.name === 'AssertionError') throw error;
+      expect(error.code).toBe("FORBIDDEN");
+    }
+  });
+
+  it("should prevent excessive message length", async () => {
+    const userCtx = createAuthContext(1, "user").ctx;
+    const caller = appRouter.createCaller(userCtx);
+    const longMessage = "a".repeat(5001);
+
+    try {
+      await caller.chat.sendMessage({ conversationId: 1, message: longMessage });
+      expect.fail("Should have thrown BAD_REQUEST error");
+    } catch (error: any) {
+      if (error.name === 'AssertionError') throw error;
+      // tRPC throws BAD_REQUEST (Zod error) for input validation failures
+      expect(error.code).toBe("BAD_REQUEST");
+    }
+  });
 });
