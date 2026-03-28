@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Leaf } from "lucide-react";
 import { Product } from "@shared/types";
@@ -13,7 +13,12 @@ interface ProductCardProps {
   onAddToCart: (productId: number) => void;
 }
 
-export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
+/**
+ * ProductCard component display product details and provides add-to-cart functionality.
+ * Optimization: Wrapped in React.memo to prevent unnecessary re-renders when the parent
+ * Menu page filters products, especially since O(N) cards are rendered in the grid.
+ */
+function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const [hasImageError, setHasImageError] = useState(false);
 
   return (
@@ -80,3 +85,5 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
     </div>
   );
 }
+
+export default memo(ProductCard);
