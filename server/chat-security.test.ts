@@ -122,8 +122,7 @@ describe("Chat Security (IDOR)", () => {
 
     try {
       await caller.chat.updateAgentStatus({ status: "online" });
-      // Current implementation allows this, so this might fail until fixed
-      // expect.fail("Should have thrown FORBIDDEN error");
+      expect.fail("Should have thrown FORBIDDEN error");
     } catch (error: any) {
       if (error.name === 'AssertionError') throw error;
       expect(error.code).toBe("FORBIDDEN");
@@ -136,7 +135,7 @@ describe("Chat Security (IDOR)", () => {
 
     try {
       await caller.chat.sendMessage({ conversationId: -1, message: "test" });
-      // expect.fail("Should have thrown validation error");
+      expect.fail("Should have thrown validation error");
     } catch (error: any) {
       if (error.name === 'AssertionError') throw error;
       // tRPC validation error code is usually BAD_REQUEST or similar
@@ -151,7 +150,7 @@ describe("Chat Security (IDOR)", () => {
 
     try {
       await caller.chat.sendMessage({ conversationId: 1, message: longMessage });
-      // expect.fail("Should have thrown validation error");
+      expect.fail("Should have thrown validation error");
     } catch (error: any) {
       if (error.name === 'AssertionError') throw error;
       expect(error.code).toBe("BAD_REQUEST");
