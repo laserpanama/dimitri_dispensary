@@ -1,3 +1,7 @@
 ## 2025-01-24 - [Accessible Action Buttons and Image Fallbacks]
 **Learning:** Icon-only buttons (like "Add to Cart") require explicit `aria-label` attributes to be accessible. For buttons that are disabled (e.g., "Out of Stock"), appending the state to the label (e.g., "Add to cart (Out of Stock)") provides immediate context to screen reader users. Additionally, providing a thematic fallback icon (e.g., a `Leaf` icon for a dispensary) for failed image loads ensures the UI remains polished and meaningful even when assets are missing.
 **Action:** Always wrap icon-only buttons in `Tooltip` components and provide descriptive `aria-label` attributes. Implement `onError` handlers on product images to show high-quality fallback icons.
+
+## 2025-03-06 - [Dynamic Quantity Control Labels and Accessible State]
+**Learning:** For quantity controls, the "Decrease" action's `aria-label` and `Tooltip` should dynamically update to "Remove item" when the current quantity is 1. This provides immediate, clear feedback on the consequence of the action for both visual and screen reader users. Additionally, it's critical to ensure that numerical state (like the quantity value) is NOT hidden from screen readers using `aria-hidden="true"`, as it provides essential context for the surrounding interactive controls.
+**Action:** Implement conditional logic for ARIA labels on decrement buttons and always keep current status indicators accessible to assistive technologies.
