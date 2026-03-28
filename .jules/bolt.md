@@ -5,3 +5,7 @@
 ## 2025-05-16 - [Database Indexing for Common Query Paths]
 **Learning:** Identifying frequently queried foreign keys (e.g., `userId` in `orders`, `appointments`, `notifications`) and filtering columns (e.g., `category` in `products`) and adding explicit MySQL indexes significantly improves query performance by avoiding full table scans (converting O(N) operations to O(log N)).
 **Action:** Always verify schema definitions and query patterns to ensure all columns used in `WHERE` clauses, `JOIN` conditions, or `ORDER BY` clauses are properly indexed. Use descriptive naming conventions (e.g., `table_column_idx`) for maintainability.
+
+## 2025-05-17 - [Redundant Render and Network Fetch Optimization]
+**Learning:** In the `Cart` component, `cartProductIds` was being recalculated on every render, and its reference was changing because `.map()` creates a new array. By stabilizing this reference using a sorted join key string in the dependency array, we prevent redundant tRPC `getByIds` re-fetches when only quantities (not product IDs) change. Additionally, replacing `useState`/`useEffect` with `useMemo` for derived data (like the product lookup table) eliminates extra render cycles upon data fetch.
+**Action:** Use memoized derived data instead of syncing state with effects. For array dependencies in hooks, consider using a stable primitive (like a join string) if the array contents are what matter.
