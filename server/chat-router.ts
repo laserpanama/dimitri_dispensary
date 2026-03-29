@@ -19,7 +19,7 @@ import { invokeLLM } from "./_core/llm";
 export const chatRouter = router({
   // Start or get active conversation
   startConversation: protectedProcedure
-    .input(z.object({ subject: z.string().optional() }))
+    .input(z.object({ subject: z.string().max(255).optional() }))
     .mutation(async ({ input, ctx }) => {
       const conversation = await getOrCreateConversation(ctx.user.id, input.subject);
       if (!conversation) {
@@ -49,7 +49,7 @@ export const chatRouter = router({
     .input(
       z.object({
         conversationId: z.number(),
-        message: z.string().min(1),
+        message: z.string().min(1).max(5000),
       })
     )
     .mutation(async ({ input, ctx }) => {
