@@ -42,9 +42,9 @@ async function startServer() {
     next();
   });
 
-  // Configure body parser with larger size limit for file uploads
-  app.use(express.json({ limit: "50mb" }));
-  app.use(express.urlencoded({ limit: "50mb", extended: true }));
+  // Configure body parser with a reasonable limit to mitigate DoS risks
+  app.use(express.json({ limit: "1mb" }));
+  app.use(express.urlencoded({ limit: "1mb", extended: true }));
 
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
