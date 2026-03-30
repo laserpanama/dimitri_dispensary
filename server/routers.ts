@@ -62,7 +62,7 @@ export const appRouter = router({
       }),
 
     getById: publicProcedure
-      .input(z.object({ id: z.number() }))
+      .input(z.object({ id: z.number().int().positive() }))
       .query(async ({ input }) => {
         const product = await getProductById(input.id);
         if (!product) {
@@ -72,7 +72,7 @@ export const appRouter = router({
       }),
 
     getByIds: publicProcedure
-      .input(z.object({ ids: z.array(z.number()) }))
+      .input(z.object({ ids: z.array(z.number().int().positive()) }))
       .query(async ({ input }) => {
         return await getProductsByIds(input.ids);
       }),
@@ -85,7 +85,7 @@ export const appRouter = router({
     }),
 
     getById: protectedProcedure
-      .input(z.object({ id: z.number() }))
+      .input(z.object({ id: z.number().int().positive() }))
       .query(async ({ input, ctx }) => {
         const order = await getOrderById(input.id);
         if (!order || order.userId !== ctx.user.id) {
@@ -95,7 +95,7 @@ export const appRouter = router({
       }),
 
     getItems: protectedProcedure
-      .input(z.object({ orderId: z.number() }))
+      .input(z.object({ orderId: z.number().int().positive() }))
       .query(async ({ input, ctx }) => {
         const order = await getOrderById(input.orderId);
         if (!order || order.userId !== ctx.user.id) {
@@ -109,7 +109,7 @@ export const appRouter = router({
         z.object({
           items: z.array(
             z.object({
-              productId: z.number(),
+              productId: z.number().int().positive(),
               quantity: z.number().min(1),
             })
           ),
