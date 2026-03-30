@@ -1,3 +1,7 @@
 ## 2025-01-24 - [Accessible Action Buttons and Image Fallbacks]
 **Learning:** Icon-only buttons (like "Add to Cart") require explicit `aria-label` attributes to be accessible. For buttons that are disabled (e.g., "Out of Stock"), appending the state to the label (e.g., "Add to cart (Out of Stock)") provides immediate context to screen reader users. Additionally, providing a thematic fallback icon (e.g., a `Leaf` icon for a dispensary) for failed image loads ensures the UI remains polished and meaningful even when assets are missing.
 **Action:** Always wrap icon-only buttons in `Tooltip` components and provide descriptive `aria-label` attributes. Implement `onError` handlers on product images to show high-quality fallback icons.
+
+## 2026-03-30 - [Accessible Cart Controls and Dynamic Feedback]
+**Learning:** Interactive UI elements that update state without a page reload, such as quantity counters in a shopping cart, need explicit ARIA live regions (`aria-live="polite"`) to ensure screen reader users are notified of the change as it happens. Furthermore, icon-only buttons for quantity adjustment (+/-) and item removal should always be paired with both `aria-label` for screen readers and `Tooltip` for sighted users to prevent ambiguity.
+**Action:** Implement `aria-live="polite"` on dynamic counters and ensure all icon-only buttons have localized `aria-label` and `Tooltip` components.

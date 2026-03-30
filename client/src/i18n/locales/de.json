@@ -28,6 +28,8 @@
     "edit": "Bearbeiten",
     "add": "Hinzufügen",
     "remove": "Entfernen",
+    "increase": "Menge erhöhen",
+    "decrease": "Menge verringern",
     "loading": "Lädt...",
     "error": "Fehler",
     "success": "Erfolg",

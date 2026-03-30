@@ -28,6 +28,8 @@
     "edit": "Edit",
     "add": "Add",
     "remove": "Remove",
+    "increase": "Increase quantity",
+    "decrease": "Decrease quantity",
     "loading": "Loading...",
     "error": "Error",
     "success": "Success",
