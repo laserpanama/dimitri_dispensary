@@ -5,6 +5,12 @@ import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import { ArrowLeft, Trash2, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface CartItem {
   productId: number;
@@ -13,6 +19,7 @@ interface CartItem {
 
 export default function Cart() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [cartItems, setCartItems] = useState<CartItem[]>(() =>
     JSON.parse(localStorage.getItem("cartItems") || "[]")
   );
@@ -156,29 +163,50 @@ export default function Cart() {
 
                     <div className="flex items-center gap-4">
                       <div className="flex items-center border border-green-500/50 rounded-lg">
-                        <button
-                          onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
-                          className="px-3 py-2 text-green-400 hover:bg-green-500/20"
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
+                              className="px-3 py-2 text-green-400 hover:bg-green-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-inset"
+                              aria-label={t("common.decrease")}
+                            >
+                              −
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>{t("common.decrease")}</TooltipContent>
+                        </Tooltip>
+                        <span
+                          className="px-4 py-2 text-white font-semibold min-w-[3rem] text-center"
+                          aria-live="polite"
                         >
-                          −
-                        </button>
-                        <span className="px-4 py-2 text-white font-semibold">
                           {item.quantity}
                         </span>
-                        <button
-                          onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
-                          className="px-3 py-2 text-green-400 hover:bg-green-500/20"
-                        >
-                          +
-                        </button>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
+                              className="px-3 py-2 text-green-400 hover:bg-green-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-inset"
+                              aria-label={t("common.increase")}
+                            >
+                              +
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>{t("common.increase")}</TooltipContent>
+                        </Tooltip>
                       </div>
 
-                      <button
-                        onClick={() => handleRemoveItem(item.productId)}
-                        className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={() => handleRemoveItem(item.productId)}
+                            className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                            aria-label={t("common.remove")}
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>{t("common.remove")}</TooltipContent>
+                      </Tooltip>
                     </div>
                   </div>
                 );
@@ -223,13 +251,17 @@ export default function Cart() {
               {/* Delivery Address */}
               {fulfillmentType === "delivery" && (
                 <div className="mb-6">
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">
-                    Delivery Address
+                  <label
+                    htmlFor="deliveryAddress"
+                    className="block text-sm font-semibold text-gray-300 mb-2"
+                  >
+                    {t("cart.deliveryAddress")}
                   </label>
                   <textarea
+                    id="deliveryAddress"
                     value={deliveryAddress}
                     onChange={(e) => setDeliveryAddress(e.target.value)}
-                    placeholder="Enter your delivery address"
+                    placeholder={t("cart.deliveryAddress")}
                     className="w-full px-4 py-3 bg-slate-800/50 border border-green-500/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
                     rows={3}
                   />
