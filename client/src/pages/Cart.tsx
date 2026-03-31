@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { ArrowLeft, Trash2, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 
@@ -13,19 +13,23 @@ interface CartItem {
 
 export default function Cart() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const [cartItems, setCartItems] = useState<CartItem[]>(() =>
     JSON.parse(localStorage.getItem("cartItems") || "[]")
   );
   const [fulfillmentType, setFulfillmentType] = useState<"pickup" | "delivery">("pickup");
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [products, setProducts] = useState<Record<number, any>>({});
 
   const createOrderMutation = trpc.orders.create.useMutation();
 
   // Get cart item IDs for fetching product details.
   // We derive this from state and memoize it to avoid unnecessary recalculations and localStorage reads.
-  const cartProductIds = useMemo(() => cartItems.map((item) => item.productId), [cartItems]);
+  // Optimization: Stabilize the dependency key to prevent redundant tRPC re-fetches when only quantities change.
+  const cartProductIds = useMemo(
+    () => cartItems.map((item) => item.productId),
+    [cartItems.map((item) => item.productId).sort().join(",")]
+  );
 
   // Optimization: Fetch only the products that are actually in the cart.
   // This avoids loading the entire product catalog, which improves performance as the catalog grows.
@@ -34,13 +38,13 @@ export default function Cart() {
     { enabled: cartProductIds.length > 0 }
   );
 
-  useEffect(() => {
-    // Create product lookup from targeted fetch
+  // Optimization: Derive product lookup directly from tRPC data to eliminate a redundant render cycle.
+  const products = useMemo(() => {
     const lookup: Record<number, any> = {};
     fetchedProducts.forEach((p) => {
       lookup[p.id] = p;
     });
-    setProducts(lookup);
+    return lookup;
   }, [fetchedProducts]);
 
   const handleRemoveItem = (productId: number) => {
@@ -62,13 +66,14 @@ export default function Cart() {
     localStorage.setItem("cartItems", JSON.stringify(updated));
   };
 
-  const calculateTotal = () => {
+  // Optimization: Memoize the total price calculation to avoid re-calculating it on every render.
+  const total = useMemo(() => {
     return cartItems.reduce((total, item) => {
       const product = products[item.productId];
       if (!product) return total;
       return total + parseFloat(product.price) * item.quantity;
     }, 0);
-  };
+  }, [cartItems, products]);
 
   const handleCheckout = async () => {
     if (cartItems.length === 0) {
@@ -93,7 +98,7 @@ export default function Cart() {
       setCartItems([]);
       toast.success("Order placed successfully!");
       setTimeout(() => {
-        window.location.href = "/orders";
+        setLocation("/orders");
       }, 1000);
     } catch (error) {
       toast.error("Failed to place order");
@@ -101,8 +106,6 @@ export default function Cart() {
       setIsLoading(false);
     }
   };
-
-  const total = calculateTotal();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
