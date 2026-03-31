@@ -1,3 +1,7 @@
 ## 2025-01-24 - [Accessible Action Buttons and Image Fallbacks]
 **Learning:** Icon-only buttons (like "Add to Cart") require explicit `aria-label` attributes to be accessible. For buttons that are disabled (e.g., "Out of Stock"), appending the state to the label (e.g., "Add to cart (Out of Stock)") provides immediate context to screen reader users. Additionally, providing a thematic fallback icon (e.g., a `Leaf` icon for a dispensary) for failed image loads ensures the UI remains polished and meaningful even when assets are missing.
 **Action:** Always wrap icon-only buttons in `Tooltip` components and provide descriptive `aria-label` attributes. Implement `onError` handlers on product images to show high-quality fallback icons.
+
+## 2025-01-24 - [Cart Interactivity and Form Accessibility]
+**Learning:** For dynamic UI elements like quantity counters, using `aria-live="polite"` ensures screen readers announce updates as they happen without interrupting the user. Additionally, explicit association between form labels and inputs (using `htmlFor` and `id`) is essential for accessibility, especially in forms like delivery address entry. For SPA navigation, using `setLocation` from `wouter` prevents unnecessary full-page reloads, maintaining the application state and providing a smoother transition.
+**Action:** Use `aria-live` on text elements that display changing totals or counts. Always verify `htmlFor`/`id` parity on form fields. Prefer internal router hooks for post-action navigation.
