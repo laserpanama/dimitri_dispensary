@@ -115,4 +115,20 @@ describe("Chat Security (IDOR)", () => {
       expect(error.code).toBe("FORBIDDEN");
     }
   });
+
+  it("should prevent sending a message that exceeds the length limit", async () => {
+    const { ctx } = createAuthContext(1);
+    const conversationId = 123;
+    const longMessage = "a".repeat(5001);
+
+    const caller = appRouter.createCaller(ctx);
+
+    try {
+      await caller.chat.sendMessage({ conversationId, message: longMessage });
+      expect.fail("Should have thrown validation error");
+    } catch (error: any) {
+      if (error.name === 'AssertionError') throw error;
+      expect(error.message).toContain("expected string to have <=5000 characters");
+    }
+  });
 });
