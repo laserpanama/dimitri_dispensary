@@ -1,4 +1,9 @@
-import { router, protectedProcedure, publicProcedure } from "./_core/trpc";
+import {
+  router,
+  protectedProcedure,
+  publicProcedure,
+  adminProcedure,
+} from "./_core/trpc";
 import { z } from "zod";
 import {
   getOrCreateConversation,
@@ -19,7 +24,7 @@ import { invokeLLM } from "./_core/llm";
 export const chatRouter = router({
   // Start or get active conversation
   startConversation: protectedProcedure
-    .input(z.object({ subject: z.string().optional() }))
+    .input(z.object({ subject: z.string().max(255).optional() }))
     .mutation(async ({ input, ctx }) => {
       const conversation = await getOrCreateConversation(ctx.user.id, input.subject);
       if (!conversation) {
@@ -30,7 +35,7 @@ export const chatRouter = router({
 
   // Get conversation messages
   getMessages: protectedProcedure
-    .input(z.object({ conversationId: z.number() }))
+    .input(z.object({ conversationId: z.number().int().positive() }))
     .query(async ({ input, ctx }) => {
       const conversation = await getConversationById(input.conversationId);
       if (!conversation) {
@@ -48,8 +53,8 @@ export const chatRouter = router({
   sendMessage: protectedProcedure
     .input(
       z.object({
-        conversationId: z.number(),
-        message: z.string().min(1),
+        conversationId: z.number().int().positive(),
+        message: z.string().min(1).max(5000),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -119,7 +124,7 @@ export const chatRouter = router({
 
   // Close conversation
   closeConversation: protectedProcedure
-    .input(z.object({ conversationId: z.number() }))
+    .input(z.object({ conversationId: z.number().int().positive() }))
     .mutation(async ({ input, ctx }) => {
       const conversation = await getConversationById(input.conversationId);
       if (!conversation) {
@@ -138,7 +143,7 @@ export const chatRouter = router({
 
   // Mark messages as read
   markAsRead: protectedProcedure
-    .input(z.object({ conversationId: z.number() }))
+    .input(z.object({ conversationId: z.number().int().positive() }))
     .mutation(async ({ input, ctx }) => {
       const conversation = await getConversationById(input.conversationId);
       if (!conversation) {
@@ -160,21 +165,18 @@ export const chatRouter = router({
     return await getOnlineAgents();
   }),
 
-  getActiveConversations: protectedProcedure.query(async ({ ctx }) => {
-    // Only admins can see all conversations
-    if (ctx.user?.role !== "admin") {
-      throw new TRPCError({ code: "FORBIDDEN" });
-    }
+  getActiveConversations: adminProcedure.query(async () => {
     return await getActiveConversations();
   }),
 
-  assignToAgent: protectedProcedure
-    .input(z.object({ conversationId: z.number(), agentId: z.number() }))
-    .mutation(async ({ input, ctx }) => {
-      // Only admins can assign conversations
-      if (ctx.user?.role !== "admin") {
-        throw new TRPCError({ code: "FORBIDDEN" });
-      }
+  assignToAgent: adminProcedure
+    .input(
+      z.object({
+        conversationId: z.number().int().positive(),
+        agentId: z.number().int().positive(),
+      })
+    )
+    .mutation(async ({ input }) => {
       const success = await assignConversationToAgent(
         input.conversationId,
         input.agentId
