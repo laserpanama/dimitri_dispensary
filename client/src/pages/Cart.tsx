@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
@@ -19,7 +19,6 @@ export default function Cart() {
   const [fulfillmentType, setFulfillmentType] = useState<"pickup" | "delivery">("pickup");
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [products, setProducts] = useState<Record<number, any>>({});
 
   const createOrderMutation = trpc.orders.create.useMutation();
 
@@ -34,13 +33,14 @@ export default function Cart() {
     { enabled: cartProductIds.length > 0 }
   );
 
-  useEffect(() => {
-    // Create product lookup from targeted fetch
+  // Optimization: Derive product lookup table using useMemo to eliminate a redundant re-render
+  // caused by updating local state in a useEffect.
+  const productsLookup = useMemo(() => {
     const lookup: Record<number, any> = {};
     fetchedProducts.forEach((p) => {
       lookup[p.id] = p;
     });
-    setProducts(lookup);
+    return lookup;
   }, [fetchedProducts]);
 
   const handleRemoveItem = (productId: number) => {
@@ -62,13 +62,15 @@ export default function Cart() {
     localStorage.setItem("cartItems", JSON.stringify(updated));
   };
 
-  const calculateTotal = () => {
-    return cartItems.reduce((total, item) => {
-      const product = products[item.productId];
-      if (!product) return total;
-      return total + parseFloat(product.price) * item.quantity;
+  // Optimization: Memoize the total price calculation to avoid recalculating on every render,
+  // especially when typing in the delivery address field.
+  const total = useMemo(() => {
+    return cartItems.reduce((acc, item) => {
+      const product = productsLookup[item.productId];
+      if (!product) return acc;
+      return acc + parseFloat(product.price) * item.quantity;
     }, 0);
-  };
+  }, [cartItems, productsLookup]);
 
   const handleCheckout = async () => {
     if (cartItems.length === 0) {
@@ -102,8 +104,6 @@ export default function Cart() {
     }
   };
 
-  const total = calculateTotal();
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Header */}
@@ -136,7 +136,7 @@ export default function Cart() {
             {/* Cart Items */}
             <div className="lg:col-span-2 space-y-4">
               {cartItems.map((item) => {
-                const product = products[item.productId];
+                const product = productsLookup[item.productId];
                 if (!product) return null;
 
                 return (
