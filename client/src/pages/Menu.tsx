@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
@@ -25,7 +25,7 @@ export default function Menu() {
     category: selectedCategory,
   });
 
-  const handleAddToCart = (productId: number) => {
+  const handleAddToCart = useCallback((productId: number) => {
     const cartItems = JSON.parse(localStorage.getItem("cartItems") || "[]");
     const existingItem = cartItems.find((item: any) => item.productId === productId);
 
@@ -37,7 +37,7 @@ export default function Menu() {
 
     localStorage.setItem("cartItems", JSON.stringify(cartItems));
     toast.success("Added to cart!");
-  };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
