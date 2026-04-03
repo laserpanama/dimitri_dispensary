@@ -113,7 +113,7 @@ export async function assignConversationToAgent(conversationId: number, agentId:
   const db = await getDb();
   if (!db) return false;
 
-  await db
+  const result = await db
     .update(chatConversations)
     .set({
       agentId,
@@ -122,14 +122,14 @@ export async function assignConversationToAgent(conversationId: number, agentId:
     })
     .where(eq(chatConversations.id, conversationId));
 
-  return true;
+  return (result as any).affectedRows > 0 || (result as any)[0]?.affectedRows > 0;
 }
 
 export async function closeConversation(conversationId: number) {
   const db = await getDb();
   if (!db) return false;
 
-  await db
+  const result = await db
     .update(chatConversations)
     .set({
       status: "closed",
@@ -138,7 +138,7 @@ export async function closeConversation(conversationId: number) {
     })
     .where(eq(chatConversations.id, conversationId));
 
-  return true;
+  return (result as any).affectedRows > 0 || (result as any)[0]?.affectedRows > 0;
 }
 
 export async function getOnlineAgents() {
@@ -160,7 +160,7 @@ export async function updateAgentStatus(userId: number, status: "online" | "offl
   const db = await getDb();
   if (!db) return false;
 
-  await db
+  const result = await db
     .update(chatAgents)
     .set({
       status,
@@ -168,17 +168,17 @@ export async function updateAgentStatus(userId: number, status: "online" | "offl
     })
     .where(eq(chatAgents.userId, userId));
 
-  return true;
+  return (result as any).affectedRows > 0 || (result as any)[0]?.affectedRows > 0;
 }
 
 export async function markMessagesAsRead(conversationId: number) {
   const db = await getDb();
   if (!db) return false;
 
-  await db
+  const result = await db
     .update(chatMessages)
     .set({ isRead: true })
     .where(eq(chatMessages.conversationId, conversationId));
 
-  return true;
+  return (result as any).affectedRows > 0 || (result as any)[0]?.affectedRows > 0;
 }
