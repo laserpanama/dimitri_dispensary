@@ -5,3 +5,7 @@
 ## 2025-05-16 - [Database Indexing for Common Query Paths]
 **Learning:** Identifying frequently queried foreign keys (e.g., `userId` in `orders`, `appointments`, `notifications`) and filtering columns (e.g., `category` in `products`) and adding explicit MySQL indexes significantly improves query performance by avoiding full table scans (converting O(N) operations to O(log N)).
 **Action:** Always verify schema definitions and query patterns to ensure all columns used in `WHERE` clauses, `JOIN` conditions, or `ORDER BY` clauses are properly indexed. Use descriptive naming conventions (e.g., `table_column_idx`) for maintainability.
+
+## 2025-05-17 - [Optimizing Component Rendering and Navigation]
+**Learning:** Using `useState` + `useEffect` to derive data from props or other state causes an unnecessary extra render cycle. Directly deriving the data using `useMemo` is more efficient. Additionally, using `window.location.href` for internal navigation causes a full page reload, which can be avoided by using a router's navigation hook (like `wouter`'s `useLocation`) for a much faster client-side transition.
+**Action:** Always prefer `useMemo` over `useEffect` for derived state. Use router-specific hooks for internal navigation to avoid expensive full page reloads.
