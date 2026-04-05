@@ -116,3 +116,61 @@ describe("Chat Security (IDOR)", () => {
     }
   });
 });
+
+describe("Chat Validation", () => {
+  it("should reject chat messages exceeding 5000 characters", async () => {
+    const { ctx } = createAuthContext(1);
+    const caller = appRouter.createCaller(ctx);
+    const longMessage = "a".repeat(5001);
+
+    try {
+      await caller.chat.sendMessage({ conversationId: 1, message: longMessage });
+      expect.fail("Should have thrown validation error");
+    } catch (error: any) {
+      if (error.name === 'AssertionError') throw error;
+      expect(error.message).toContain("expected string to have <=5000 characters");
+    }
+  });
+
+  it("should reject conversation subjects exceeding 255 characters", async () => {
+    const { ctx } = createAuthContext(1);
+    const caller = appRouter.createCaller(ctx);
+    const longSubject = "s".repeat(256);
+
+    try {
+      await caller.chat.startConversation({ subject: longSubject });
+      expect.fail("Should have thrown validation error");
+    } catch (error: any) {
+      if (error.name === 'AssertionError') throw error;
+      expect(error.message).toContain("expected string to have <=255 characters");
+    }
+  });
+});
+
+describe("Chat RBAC", () => {
+  it("should prevent a regular user from getting active conversations", async () => {
+    const { ctx } = createAuthContext(1, "user");
+    const caller = appRouter.createCaller(ctx);
+
+    try {
+      await caller.chat.getActiveConversations();
+      expect.fail("Should have thrown FORBIDDEN error");
+    } catch (error: any) {
+      if (error.name === 'AssertionError') throw error;
+      expect(error.code).toBe("FORBIDDEN");
+    }
+  });
+
+  it("should prevent a regular user from assigning a conversation", async () => {
+    const { ctx } = createAuthContext(1, "user");
+    const caller = appRouter.createCaller(ctx);
+
+    try {
+      await caller.chat.assignToAgent({ conversationId: 1, agentId: 2 });
+      expect.fail("Should have thrown FORBIDDEN error");
+    } catch (error: any) {
+      if (error.name === 'AssertionError') throw error;
+      expect(error.code).toBe("FORBIDDEN");
+    }
+  });
+});
