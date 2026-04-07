@@ -1,10 +1,11 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import { ArrowLeft, Trash2, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
+import { usePersistFn } from "@/hooks/usePersistFn";
 
 interface CartItem {
   productId: number;
@@ -19,7 +20,6 @@ export default function Cart() {
   const [fulfillmentType, setFulfillmentType] = useState<"pickup" | "delivery">("pickup");
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [products, setProducts] = useState<Record<number, any>>({});
 
   const createOrderMutation = trpc.orders.create.useMutation();
 
@@ -34,22 +34,23 @@ export default function Cart() {
     { enabled: cartProductIds.length > 0 }
   );
 
-  useEffect(() => {
-    // Create product lookup from targeted fetch
+  // Optimization: Create product lookup from targeted fetch using useMemo
+  // This avoids an extra render cycle that occurred with the useState + useEffect pattern.
+  const products = useMemo(() => {
     const lookup: Record<number, any> = {};
     fetchedProducts.forEach((p) => {
       lookup[p.id] = p;
     });
-    setProducts(lookup);
+    return lookup;
   }, [fetchedProducts]);
 
-  const handleRemoveItem = (productId: number) => {
+  const handleRemoveItem = usePersistFn((productId: number) => {
     const updated = cartItems.filter((item) => item.productId !== productId);
     setCartItems(updated);
     localStorage.setItem("cartItems", JSON.stringify(updated));
-  };
+  });
 
-  const handleUpdateQuantity = (productId: number, quantity: number) => {
+  const handleUpdateQuantity = usePersistFn((productId: number, quantity: number) => {
     if (quantity <= 0) {
       handleRemoveItem(productId);
       return;
@@ -60,17 +61,18 @@ export default function Cart() {
     );
     setCartItems(updated);
     localStorage.setItem("cartItems", JSON.stringify(updated));
-  };
+  });
 
-  const calculateTotal = () => {
-    return cartItems.reduce((total, item) => {
+  // Optimization: Memoize total price calculation
+  const total = useMemo(() => {
+    return cartItems.reduce((acc, item) => {
       const product = products[item.productId];
-      if (!product) return total;
-      return total + parseFloat(product.price) * item.quantity;
+      if (!product) return acc;
+      return acc + parseFloat(product.price) * item.quantity;
     }, 0);
-  };
+  }, [cartItems, products]);
 
-  const handleCheckout = async () => {
+  const handleCheckout = usePersistFn(async () => {
     if (cartItems.length === 0) {
       toast.error("Your cart is empty");
       return;
@@ -100,9 +102,7 @@ export default function Cart() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const total = calculateTotal();
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
