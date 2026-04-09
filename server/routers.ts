@@ -56,13 +56,13 @@ export const appRouter = router({
   // Products
   products: router({
     list: publicProcedure
-      .input(z.object({ category: z.string().max(255).optional() }).optional())
+      .input(z.object({ category: z.string().optional() }).optional())
       .query(async ({ input }) => {
         return await getProducts(input?.category);
       }),
 
     getById: publicProcedure
-      .input(z.object({ id: z.number().int().positive() }))
+      .input(z.object({ id: z.number() }))
       .query(async ({ input }) => {
         const product = await getProductById(input.id);
         if (!product) {
@@ -72,7 +72,7 @@ export const appRouter = router({
       }),
 
     getByIds: publicProcedure
-      .input(z.object({ ids: z.array(z.number().int().positive()) }))
+      .input(z.object({ ids: z.array(z.number()) }))
       .query(async ({ input }) => {
         return await getProductsByIds(input.ids);
       }),
@@ -85,7 +85,7 @@ export const appRouter = router({
     }),
 
     getById: protectedProcedure
-      .input(z.object({ id: z.number().int().positive() }))
+      .input(z.object({ id: z.number() }))
       .query(async ({ input, ctx }) => {
         const order = await getOrderById(input.id);
         if (!order || order.userId !== ctx.user.id) {
@@ -95,7 +95,7 @@ export const appRouter = router({
       }),
 
     getItems: protectedProcedure
-      .input(z.object({ orderId: z.number().int().positive() }))
+      .input(z.object({ orderId: z.number() }))
       .query(async ({ input, ctx }) => {
         const order = await getOrderById(input.orderId);
         if (!order || order.userId !== ctx.user.id) {
@@ -109,12 +109,12 @@ export const appRouter = router({
         z.object({
           items: z.array(
             z.object({
-              productId: z.number().int().positive(),
-              quantity: z.number().int().min(1),
+              productId: z.number(),
+              quantity: z.number().min(1),
             })
           ),
           fulfillmentType: z.enum(["pickup", "delivery"]),
-          deliveryAddress: z.string().max(5000).optional(),
+          deliveryAddress: z.string().optional(),
         })
       )
       .mutation(async ({ input, ctx }) => {
@@ -212,7 +212,7 @@ export const appRouter = router({
         z.object({
           appointmentTime: z.date(),
           consultationType: z.enum(["initial_consultation", "follow_up", "product_recommendation"]),
-          notes: z.string().max(5000).optional(),
+          notes: z.string().optional(),
         })
       )
       .mutation(async ({ input, ctx }) => {
@@ -247,7 +247,7 @@ export const appRouter = router({
     }),
 
     getBySlug: publicProcedure
-      .input(z.object({ slug: z.string().max(255) }))
+      .input(z.object({ slug: z.string() }))
       .query(async ({ input }) => {
         const post = await getBlogPostBySlug(input.slug);
         if (!post) {
