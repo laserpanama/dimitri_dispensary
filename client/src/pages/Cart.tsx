@@ -5,6 +5,12 @@ import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import { ArrowLeft, Trash2, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface CartItem {
   productId: number;
@@ -12,11 +18,14 @@ interface CartItem {
 }
 
 export default function Cart() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [cartItems, setCartItems] = useState<CartItem[]>(() =>
     JSON.parse(localStorage.getItem("cartItems") || "[]")
   );
-  const [fulfillmentType, setFulfillmentType] = useState<"pickup" | "delivery">("pickup");
+  const [fulfillmentType, setFulfillmentType] = useState<"pickup" | "delivery">(
+    "pickup"
+  );
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [products, setProducts] = useState<Record<number, any>>({});
@@ -25,7 +34,10 @@ export default function Cart() {
 
   // Get cart item IDs for fetching product details.
   // We derive this from state and memoize it to avoid unnecessary recalculations and localStorage reads.
-  const cartProductIds = useMemo(() => cartItems.map((item) => item.productId), [cartItems]);
+  const cartProductIds = useMemo(
+    () => cartItems.map(item => item.productId),
+    [cartItems]
+  );
 
   // Optimization: Fetch only the products that are actually in the cart.
   // This avoids loading the entire product catalog, which improves performance as the catalog grows.
@@ -37,14 +49,14 @@ export default function Cart() {
   useEffect(() => {
     // Create product lookup from targeted fetch
     const lookup: Record<number, any> = {};
-    fetchedProducts.forEach((p) => {
+    fetchedProducts.forEach(p => {
       lookup[p.id] = p;
     });
     setProducts(lookup);
   }, [fetchedProducts]);
 
   const handleRemoveItem = (productId: number) => {
-    const updated = cartItems.filter((item) => item.productId !== productId);
+    const updated = cartItems.filter(item => item.productId !== productId);
     setCartItems(updated);
     localStorage.setItem("cartItems", JSON.stringify(updated));
   };
@@ -55,7 +67,7 @@ export default function Cart() {
       return;
     }
 
-    const updated = cartItems.map((item) =>
+    const updated = cartItems.map(item =>
       item.productId === productId ? { ...item, quantity } : item
     );
     setCartItems(updated);
@@ -86,7 +98,8 @@ export default function Cart() {
       await createOrderMutation.mutateAsync({
         items: cartItems,
         fulfillmentType,
-        deliveryAddress: fulfillmentType === "delivery" ? deliveryAddress : undefined,
+        deliveryAddress:
+          fulfillmentType === "delivery" ? deliveryAddress : undefined,
       });
 
       localStorage.removeItem("cartItems");
@@ -110,7 +123,11 @@ export default function Cart() {
       <div className="bg-black/40 backdrop-blur-md border-b border-green-500/20 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-4">
           <Link href="/menu">
-            <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-gray-300 hover:text-white"
+            >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Menu
             </Button>
@@ -123,8 +140,12 @@ export default function Cart() {
         {cartItems.length === 0 ? (
           <div className="text-center py-20">
             <ShoppingCart className="w-20 h-20 text-gray-600 mx-auto mb-6" />
-            <h2 className="text-2xl font-bold text-white mb-4">Your cart is empty</h2>
-            <p className="text-gray-300 mb-8">Start shopping to add items to your cart</p>
+            <h2 className="text-2xl font-bold text-white mb-4">
+              Your cart is empty
+            </h2>
+            <p className="text-gray-300 mb-8">
+              Start shopping to add items to your cart
+            </p>
             <Link href="/menu">
               <Button className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700">
                 Continue Shopping
@@ -135,7 +156,7 @@ export default function Cart() {
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Cart Items */}
             <div className="lg:col-span-2 space-y-4">
-              {cartItems.map((item) => {
+              {cartItems.map(item => {
                 const product = products[item.productId];
                 if (!product) return null;
 
@@ -145,40 +166,83 @@ export default function Cart() {
                     className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-xl p-6 backdrop-blur-sm flex items-center justify-between"
                   >
                     <div className="flex-1">
-                      <h3 className="text-lg font-bold text-white">{product.name}</h3>
+                      <h3 className="text-lg font-bold text-white">
+                        {product.name}
+                      </h3>
                       {product.strain && (
-                        <p className="text-sm text-green-400">{product.strain}</p>
+                        <p className="text-sm text-green-400">
+                          {product.strain}
+                        </p>
                       )}
                       <p className="text-2xl font-bold text-green-400 mt-2">
-                        ${(parseFloat(product.price) * item.quantity).toFixed(2)}
+                        $
+                        {(parseFloat(product.price) * item.quantity).toFixed(2)}
                       </p>
                     </div>
 
                     <div className="flex items-center gap-4">
                       <div className="flex items-center border border-green-500/50 rounded-lg">
-                        <button
-                          onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
-                          className="px-3 py-2 text-green-400 hover:bg-green-500/20"
-                        >
-                          −
-                        </button>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={() =>
+                                handleUpdateQuantity(
+                                  item.productId,
+                                  item.quantity - 1
+                                )
+                              }
+                              className="px-3 py-2 text-green-400 hover:bg-green-500/20"
+                              aria-label={
+                                item.quantity === 1
+                                  ? t("cart.removeItem")
+                                  : t("cart.decreaseQuantity")
+                              }
+                            >
+                              −
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            {item.quantity === 1
+                              ? t("cart.removeItem")
+                              : t("cart.decreaseQuantity")}
+                          </TooltipContent>
+                        </Tooltip>
                         <span className="px-4 py-2 text-white font-semibold">
                           {item.quantity}
                         </span>
-                        <button
-                          onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
-                          className="px-3 py-2 text-green-400 hover:bg-green-500/20"
-                        >
-                          +
-                        </button>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={() =>
+                                handleUpdateQuantity(
+                                  item.productId,
+                                  item.quantity + 1
+                                )
+                              }
+                              className="px-3 py-2 text-green-400 hover:bg-green-500/20"
+                              aria-label={t("cart.increaseQuantity")}
+                            >
+                              +
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            {t("cart.increaseQuantity")}
+                          </TooltipContent>
+                        </Tooltip>
                       </div>
 
-                      <button
-                        onClick={() => handleRemoveItem(item.productId)}
-                        className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={() => handleRemoveItem(item.productId)}
+                            className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+                            aria-label={t("cart.removeItem")}
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>{t("cart.removeItem")}</TooltipContent>
+                      </Tooltip>
                     </div>
                   </div>
                 );
@@ -187,7 +251,9 @@ export default function Cart() {
 
             {/* Order Summary */}
             <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-2xl p-8 backdrop-blur-sm h-fit sticky top-24">
-              <h2 className="text-2xl font-bold text-white mb-6">Order Summary</h2>
+              <h2 className="text-2xl font-bold text-white mb-6">
+                Order Summary
+              </h2>
 
               {/* Fulfillment Type */}
               <div className="mb-6">
@@ -201,7 +267,9 @@ export default function Cart() {
                       name="fulfillment"
                       value="pickup"
                       checked={fulfillmentType === "pickup"}
-                      onChange={(e) => setFulfillmentType(e.target.value as "pickup")}
+                      onChange={e =>
+                        setFulfillmentType(e.target.value as "pickup")
+                      }
                       className="mr-3"
                     />
                     <span className="text-white">Pickup</span>
@@ -212,7 +280,9 @@ export default function Cart() {
                       name="fulfillment"
                       value="delivery"
                       checked={fulfillmentType === "delivery"}
-                      onChange={(e) => setFulfillmentType(e.target.value as "delivery")}
+                      onChange={e =>
+                        setFulfillmentType(e.target.value as "delivery")
+                      }
                       className="mr-3"
                     />
                     <span className="text-white">Delivery</span>
@@ -223,13 +293,17 @@ export default function Cart() {
               {/* Delivery Address */}
               {fulfillmentType === "delivery" && (
                 <div className="mb-6">
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">
-                    Delivery Address
+                  <label
+                    htmlFor="deliveryAddress"
+                    className="block text-sm font-semibold text-gray-300 mb-2"
+                  >
+                    {t("cart.deliveryAddress")}
                   </label>
                   <textarea
+                    id="deliveryAddress"
                     value={deliveryAddress}
-                    onChange={(e) => setDeliveryAddress(e.target.value)}
-                    placeholder="Enter your delivery address"
+                    onChange={e => setDeliveryAddress(e.target.value)}
+                    placeholder={t("cart.deliveryAddress")}
                     className="w-full px-4 py-3 bg-slate-800/50 border border-green-500/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
                     rows={3}
                   />
