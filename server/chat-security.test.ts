@@ -116,3 +116,63 @@ describe("Chat Security (IDOR)", () => {
     }
   });
 });
+
+describe("Chat Security (Administrative Access)", () => {
+  it("should prevent a non-admin user from getting all active conversations", async () => {
+    const userCtx = createAuthContext(1, "user").ctx;
+    const caller = appRouter.createCaller(userCtx);
+
+    try {
+      await caller.chat.getActiveConversations();
+      expect.fail("Should have thrown FORBIDDEN error");
+    } catch (error: any) {
+      if (error.name === "AssertionError") throw error;
+      expect(error.code).toBe("FORBIDDEN");
+    }
+  });
+
+  it("should prevent a non-admin user from assigning a conversation", async () => {
+    const userCtx = createAuthContext(1, "user").ctx;
+    const caller = appRouter.createCaller(userCtx);
+
+    try {
+      await caller.chat.assignToAgent({ conversationId: 1, agentId: 2 });
+      expect.fail("Should have thrown FORBIDDEN error");
+    } catch (error: any) {
+      if (error.name === "AssertionError") throw error;
+      expect(error.code).toBe("FORBIDDEN");
+    }
+  });
+});
+
+describe("Chat Security (Input Validation)", () => {
+  it("should reject a message that is too long", async () => {
+    const userCtx = createAuthContext(1, "user").ctx;
+    const caller = appRouter.createCaller(userCtx);
+
+    const longMessage = "a".repeat(5001);
+
+    try {
+      await caller.chat.sendMessage({ conversationId: 1, message: longMessage });
+      expect.fail("Should have thrown validation error");
+    } catch (error: any) {
+      if (error.name === "AssertionError") throw error;
+      // TRPC throws BAD_REQUEST for Zod validation errors by default
+      expect(error.code).toBe("BAD_REQUEST");
+      expect(error.message).toContain("expected string to have <=5000 characters");
+    }
+  });
+
+  it("should reject invalid numeric IDs", async () => {
+    const userCtx = createAuthContext(1, "user").ctx;
+    const caller = appRouter.createCaller(userCtx);
+
+    try {
+      await caller.chat.getMessages({ conversationId: -1 });
+      expect.fail("Should have thrown validation error");
+    } catch (error: any) {
+      if (error.name === "AssertionError") throw error;
+      expect(error.code).toBe("BAD_REQUEST");
+    }
+  });
+});
