@@ -36,7 +36,7 @@ export default function AgeVerificationModal({ onVerified }: AgeVerificationModa
 
     setIsLoading(true);
     try {
-      await verifyMutation.mutateAsync({});
+      await verifyMutation.mutateAsync();
       localStorage.setItem("ageVerified", "true");
       localStorage.setItem("ageVerifiedAt", new Date().toISOString());
       onVerified();
