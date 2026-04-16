@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { usePersistFn } from "@/hooks/usePersistFn";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
@@ -19,7 +20,6 @@ export default function Cart() {
   const [fulfillmentType, setFulfillmentType] = useState<"pickup" | "delivery">("pickup");
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [products, setProducts] = useState<Record<number, any>>({});
 
   const createOrderMutation = trpc.orders.create.useMutation();
 
@@ -34,22 +34,26 @@ export default function Cart() {
     { enabled: cartProductIds.length > 0 }
   );
 
-  useEffect(() => {
-    // Create product lookup from targeted fetch
+  // Optimization: Use useMemo to create a product lookup object from the fetched products.
+  // This avoids extra state updates and re-renders that would occur with useEffect/useState.
+  const products = useMemo(() => {
     const lookup: Record<number, any> = {};
     fetchedProducts.forEach((p) => {
       lookup[p.id] = p;
     });
-    setProducts(lookup);
+    return lookup;
   }, [fetchedProducts]);
 
-  const handleRemoveItem = (productId: number) => {
+  // Optimization: Stabilize event handlers with usePersistFn.
+  // This provides stable function references across renders, preventing unnecessary re-renders
+  // of child components that receive these handlers as props.
+  const handleRemoveItem = usePersistFn((productId: number) => {
     const updated = cartItems.filter((item) => item.productId !== productId);
     setCartItems(updated);
     localStorage.setItem("cartItems", JSON.stringify(updated));
-  };
+  });
 
-  const handleUpdateQuantity = (productId: number, quantity: number) => {
+  const handleUpdateQuantity = usePersistFn((productId: number, quantity: number) => {
     if (quantity <= 0) {
       handleRemoveItem(productId);
       return;
@@ -60,17 +64,19 @@ export default function Cart() {
     );
     setCartItems(updated);
     localStorage.setItem("cartItems", JSON.stringify(updated));
-  };
+  });
 
-  const calculateTotal = () => {
-    return cartItems.reduce((total, item) => {
+  // Optimization: Memoize the total calculation to prevent redundant computations on every re-render.
+  // This is especially beneficial when other state changes (like typing in a text field) trigger re-renders.
+  const total = useMemo(() => {
+    return cartItems.reduce((acc, item) => {
       const product = products[item.productId];
-      if (!product) return total;
-      return total + parseFloat(product.price) * item.quantity;
+      if (!product) return acc;
+      return acc + parseFloat(product.price) * item.quantity;
     }, 0);
-  };
+  }, [cartItems, products]);
 
-  const handleCheckout = async () => {
+  const handleCheckout = usePersistFn(async () => {
     if (cartItems.length === 0) {
       toast.error("Your cart is empty");
       return;
@@ -100,9 +106,8 @@ export default function Cart() {
     } finally {
       setIsLoading(false);
     }
-  };
+  });
 
-  const total = calculateTotal();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
