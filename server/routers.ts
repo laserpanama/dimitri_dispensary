@@ -40,7 +40,16 @@ export const appRouter = router({
   // Age Verification
   ageVerification: router({
     verify: publicProcedure
-      .mutation(async ({ ctx }) => {
+      .input(z.object({ birthYear: z.number().int().min(1900).max(new Date().getFullYear()) }))
+      .mutation(async ({ input, ctx }) => {
+        const currentYear = new Date().getFullYear();
+        if (currentYear - input.birthYear < 21) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "You must be 21 or older to access this site",
+          });
+        }
+
         const ipAddress = ctx.req.ip || "unknown";
 
         if (ctx.user) {

@@ -61,7 +61,7 @@ describe("Age Verification", () => {
     const { ctx } = createPublicContext();
     const caller = appRouter.createCaller(ctx);
 
-    const result = await caller.ageVerification.verify();
+    const result = await caller.ageVerification.verify({ birthYear: 1990 });
 
     expect(result).toEqual({ success: true });
   });
@@ -70,9 +70,23 @@ describe("Age Verification", () => {
     const { ctx } = createAuthContext();
     const caller = appRouter.createCaller(ctx);
 
-    const result = await caller.ageVerification.verify();
+    const result = await caller.ageVerification.verify({ birthYear: 1990 });
 
     expect(result).toEqual({ success: true });
+  });
+
+  it("should reject age verification for underage users", async () => {
+    const { ctx } = createPublicContext();
+    const caller = appRouter.createCaller(ctx);
+    const currentYear = new Date().getFullYear();
+
+    try {
+      await caller.ageVerification.verify({ birthYear: currentYear - 10 });
+      expect.fail("Should have thrown error");
+    } catch (error: any) {
+      expect(error.code).toBe("BAD_REQUEST");
+      expect(error.message).toContain("21 or older");
+    }
   });
 });
 
