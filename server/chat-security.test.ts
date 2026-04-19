@@ -116,3 +116,21 @@ describe("Chat Security (IDOR)", () => {
     }
   });
 });
+
+describe("Chat Input Validation", () => {
+  it("should prevent sending a message longer than 5000 characters", async () => {
+    const { ctx } = createAuthContext(1);
+    const caller = appRouter.createCaller(ctx);
+    const longMessage = "a".repeat(5001);
+
+    try {
+      await caller.chat.sendMessage({ conversationId: 1, message: longMessage });
+      expect.fail("Should have thrown validation error");
+    } catch (error: any) {
+      if (error.name === 'AssertionError') throw error;
+      // TRPC schema validation error usually has code "BAD_REQUEST" or similar
+      // or specifically mentions the length limit in the message
+      expect(error.message).toContain("5000 character");
+    }
+  });
+});
