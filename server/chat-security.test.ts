@@ -115,4 +115,59 @@ describe("Chat Security (IDOR)", () => {
       expect(error.code).toBe("FORBIDDEN");
     }
   });
+
+  it("should prevent sending a message that exceeds 5000 characters", async () => {
+    const user1Ctx = createAuthContext(1).ctx;
+    const conversationId = 123;
+
+    vi.spyOn(chatDb, "getConversationById").mockResolvedValue({
+      id: conversationId,
+      userId: 1,
+      agentId: null,
+      status: "waiting",
+      subject: "Test",
+      startedAt: new Date(),
+      closedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const longMessage = "a".repeat(5001);
+    const caller1 = appRouter.createCaller(user1Ctx);
+
+    try {
+      await caller1.chat.sendMessage({ conversationId, message: longMessage });
+      expect.fail("Should have thrown validation error for long message");
+    } catch (error: any) {
+      if (error.name === "AssertionError") throw error;
+      // TRPC/Zod validation errors often have specific structures, but checking for the presence of the limit is good
+      expect(error.message).toContain("5000 character");
+    }
+  });
+
+  it("should prevent non-admins from accessing getActiveConversations", async () => {
+    const userCtx = createAuthContext(1, "user").ctx;
+    const caller = appRouter.createCaller(userCtx);
+
+    try {
+      await caller.chat.getActiveConversations();
+      expect.fail("Should have thrown FORBIDDEN error");
+    } catch (error: any) {
+      if (error.name === "AssertionError") throw error;
+      expect(error.code).toBe("FORBIDDEN");
+    }
+  });
+
+  it("should prevent non-admins from using assignToAgent", async () => {
+    const userCtx = createAuthContext(1, "user").ctx;
+    const caller = appRouter.createCaller(userCtx);
+
+    try {
+      await caller.chat.assignToAgent({ conversationId: 123, agentId: 456 });
+      expect.fail("Should have thrown FORBIDDEN error");
+    } catch (error: any) {
+      if (error.name === "AssertionError") throw error;
+      expect(error.code).toBe("FORBIDDEN");
+    }
+  });
 });
