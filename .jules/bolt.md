@@ -5,3 +5,7 @@
 ## 2025-05-16 - [Database Indexing for Common Query Paths]
 **Learning:** Identifying frequently queried foreign keys (e.g., `userId` in `orders`, `appointments`, `notifications`) and filtering columns (e.g., `category` in `products`) and adding explicit MySQL indexes significantly improves query performance by avoiding full table scans (converting O(N) operations to O(log N)).
 **Action:** Always verify schema definitions and query patterns to ensure all columns used in `WHERE` clauses, `JOIN` conditions, or `ORDER BY` clauses are properly indexed. Use descriptive naming conventions (e.g., `table_column_idx`) for maintainability.
+
+## 2026-04-23 - [React State Synchronization Optimization in Cart]
+**Learning:** Using `useEffect` to synchronize fetched data into a local state (like a lookup map) causes an unnecessary extra render cycle. Deriving this data directly using `useMemo` is more efficient and follows React best practices for performance.
+**Action:** Prefer `useMemo` over `useEffect` + `useState` for data transformations and derivations from props or query data.

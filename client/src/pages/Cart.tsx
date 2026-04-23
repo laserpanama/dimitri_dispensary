@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
@@ -19,7 +19,6 @@ export default function Cart() {
   const [fulfillmentType, setFulfillmentType] = useState<"pickup" | "delivery">("pickup");
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [products, setProducts] = useState<Record<number, any>>({});
 
   const createOrderMutation = trpc.orders.create.useMutation();
 
@@ -34,13 +33,14 @@ export default function Cart() {
     { enabled: cartProductIds.length > 0 }
   );
 
-  useEffect(() => {
-    // Create product lookup from targeted fetch
+  // Optimization: Derive product lookup map directly from fetched data using useMemo.
+  // This eliminates an extra render cycle caused by useEffect + useState.
+  const products = useMemo(() => {
     const lookup: Record<number, any> = {};
     fetchedProducts.forEach((p) => {
       lookup[p.id] = p;
     });
-    setProducts(lookup);
+    return lookup;
   }, [fetchedProducts]);
 
   const handleRemoveItem = (productId: number) => {
@@ -60,14 +60,6 @@ export default function Cart() {
     );
     setCartItems(updated);
     localStorage.setItem("cartItems", JSON.stringify(updated));
-  };
-
-  const calculateTotal = () => {
-    return cartItems.reduce((total, item) => {
-      const product = products[item.productId];
-      if (!product) return total;
-      return total + parseFloat(product.price) * item.quantity;
-    }, 0);
   };
 
   const handleCheckout = async () => {
@@ -102,7 +94,15 @@ export default function Cart() {
     }
   };
 
-  const total = calculateTotal();
+  // Optimization: Memoize the total calculation to avoid recalculating on every render.
+  // This ensures the reduce operation only runs when cart items or product data changes.
+  const total = useMemo(() => {
+    return cartItems.reduce((acc, item) => {
+      const product = products[item.productId];
+      if (!product) return acc;
+      return acc + parseFloat(product.price) * item.quantity;
+    }, 0);
+  }, [cartItems, products]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
