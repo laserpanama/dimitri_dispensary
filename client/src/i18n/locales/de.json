@@ -39,6 +39,8 @@
     "no": "Nein",
     "price": "Preis",
     "quantity": "Menge",
+    "increase": "erhöhen",
+    "decrease": "verringern",
     "total": "Gesamt",
     "subtotal": "Zwischensumme",
     "tax": "Steuern",
