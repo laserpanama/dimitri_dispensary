@@ -115,4 +115,58 @@ describe("Chat Security (IDOR)", () => {
       expect(error.code).toBe("FORBIDDEN");
     }
   });
+
+  it("should prevent a non-admin user from accessing active conversations", async () => {
+    const userCtx = createAuthContext(1).ctx;
+    const caller = appRouter.createCaller(userCtx);
+
+    try {
+      await caller.chat.getActiveConversations();
+      expect.fail("Should have thrown FORBIDDEN error");
+    } catch (error: any) {
+      if (error.name === 'AssertionError') throw error;
+      expect(error.code).toBe("FORBIDDEN");
+    }
+  });
+
+  it("should prevent a non-admin user from assigning a conversation to an agent", async () => {
+    const userCtx = createAuthContext(1).ctx;
+    const caller = appRouter.createCaller(userCtx);
+
+    try {
+      await caller.chat.assignToAgent({ conversationId: 1, agentId: 2 });
+      expect.fail("Should have thrown FORBIDDEN error");
+    } catch (error: any) {
+      if (error.name === 'AssertionError') throw error;
+      expect(error.code).toBe("FORBIDDEN");
+    }
+  });
+
+  it("should reject messages that exceed the length limit", async () => {
+    const userCtx = createAuthContext(1).ctx;
+    const caller = appRouter.createCaller(userCtx);
+    const longMessage = "a".repeat(5001);
+
+    try {
+      await caller.chat.sendMessage({ conversationId: 1, message: longMessage });
+      expect.fail("Should have thrown validation error");
+    } catch (error: any) {
+      if (error.name === 'AssertionError') throw error;
+      expect(error.message).toContain("5000 character");
+    }
+  });
+
+  it("should reject non-positive conversation IDs", async () => {
+    const userCtx = createAuthContext(1).ctx;
+    const caller = appRouter.createCaller(userCtx);
+
+    try {
+      await caller.chat.sendMessage({ conversationId: 0, message: "Hello" });
+      expect.fail("Should have thrown validation error");
+    } catch (error: any) {
+      if (error.name === 'AssertionError') throw error;
+      // Zod positive() error message often contains "> 0" or similar
+      expect(error.message).toContain(">0");
+    }
+  });
 });
