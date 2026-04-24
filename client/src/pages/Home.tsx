@@ -5,8 +5,23 @@ import { Link } from "wouter";
 import { Leaf, ShoppingCart, Calendar, BookOpen } from "lucide-react";
 
 export default function Home() {
-  const [ageVerified, setAgeVerified] = useState(true); // BYPASSED
+  const [ageVerified, setAgeVerified] = useState(() => {
+    return localStorage.getItem("ageVerified") === "true";
+  });
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const checkAgeVerification = () => {
+      setAgeVerified(localStorage.getItem("ageVerified") === "true");
+    };
+
+    window.addEventListener("storage", checkAgeVerification);
+    return () => window.removeEventListener("storage", checkAgeVerification);
+  }, []);
+
+  if (!ageVerified) {
+    return <AgeVerificationModal onVerified={() => setAgeVerified(true)} />;
+  }
 
   return (
     <div className="min-h-screen bg-background">

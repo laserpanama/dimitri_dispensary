@@ -2,7 +2,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { chatRouter } from "./chat-router";
-import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
+import { publicProcedure, protectedProcedure, ageVerifiedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import {
   recordAgeVerification,
@@ -80,11 +80,11 @@ export const appRouter = router({
 
   // Orders
   orders: router({
-    list: protectedProcedure.query(async ({ ctx }) => {
+    list: ageVerifiedProcedure.query(async ({ ctx }) => {
       return await getUserOrders(ctx.user.id);
     }),
 
-    getById: protectedProcedure
+    getById: ageVerifiedProcedure
       .input(z.object({ id: z.number() }))
       .query(async ({ input, ctx }) => {
         const order = await getOrderById(input.id);
@@ -94,7 +94,7 @@ export const appRouter = router({
         return order;
       }),
 
-    getItems: protectedProcedure
+    getItems: ageVerifiedProcedure
       .input(z.object({ orderId: z.number() }))
       .query(async ({ input, ctx }) => {
         const order = await getOrderById(input.orderId);
@@ -104,7 +104,7 @@ export const appRouter = router({
         return await getOrderItems(input.orderId);
       }),
 
-    create: protectedProcedure
+    create: ageVerifiedProcedure
       .input(
         z.object({
           items: z.array(
@@ -188,7 +188,7 @@ export const appRouter = router({
 
   // Appointments
   appointments: router({
-    list: protectedProcedure.query(async ({ ctx }) => {
+    list: ageVerifiedProcedure.query(async ({ ctx }) => {
       return await getUserAppointments(ctx.user.id);
     }),
 
@@ -207,7 +207,7 @@ export const appRouter = router({
         return slots;
       }),
 
-    create: protectedProcedure
+    create: ageVerifiedProcedure
       .input(
         z.object({
           appointmentTime: z.date(),
