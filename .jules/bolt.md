@@ -5,3 +5,7 @@
 ## 2025-05-16 - [Database Indexing for Common Query Paths]
 **Learning:** Identifying frequently queried foreign keys (e.g., `userId` in `orders`, `appointments`, `notifications`) and filtering columns (e.g., `category` in `products`) and adding explicit MySQL indexes significantly improves query performance by avoiding full table scans (converting O(N) operations to O(log N)).
 **Action:** Always verify schema definitions and query patterns to ensure all columns used in `WHERE` clauses, `JOIN` conditions, or `ORDER BY` clauses are properly indexed. Use descriptive naming conventions (e.g., `table_column_idx`) for maintainability.
+
+## 2025-06-12 - [Derived State Optimization in Cart Page]
+**Learning:** Replacing `useEffect` + `useState` with `useMemo` for deriving a lookup map from query data eliminates an unnecessary extra render cycle. Additionally, memoizing calculations like the order total prevents redundant processing during unrelated UI updates.
+**Action:** Prefer `useMemo` for data transformations and expensive calculations based on props or query results to keep the render path clean and efficient.
