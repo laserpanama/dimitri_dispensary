@@ -110,7 +110,10 @@
     "deliveryAddress": "Διεύθυνση Αποστολής",
     "orderSummary": "Περίληψη Παραggελίας",
     "placeOrder": "Τοποθέτηση Παραggελίας",
-    "orderPlaced": "Η Παραggελία Τοποθετήθηκε Επιτυχώς!"
+    "orderPlaced": "Η Παραggελία Τοποθετήθηκε Επιτυχώς!",
+    "increaseQuantity": "Αύξηση ποσότητας του {{name}}",
+    "decreaseQuantity": "Μείωση ποσότητας του {{name}}",
+    "removeItem": "Αφαίρεση του {{name}} από το καλάθι"
   },
   "appointments": {
     "title": "Ιατρικά Ραντεβού",

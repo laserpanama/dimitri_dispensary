@@ -110,7 +110,10 @@
     "deliveryAddress": "Lieferadresse",
     "orderSummary": "Bestellübersicht",
     "placeOrder": "Bestellung aufgeben",
-    "orderPlaced": "Bestellung erfolgreich aufgegeben!"
+    "orderPlaced": "Bestellung erfolgreich aufgegeben!",
+    "increaseQuantity": "Menge von {{name}} erhöhen",
+    "decreaseQuantity": "Menge von {{name}} verringern",
+    "removeItem": "{{name}} aus dem Warenkorb entfernen"
   },
   "appointments": {
     "title": "Arztterminen",
