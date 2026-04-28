@@ -62,19 +62,22 @@ export const appRouter = router({
       }),
 
     getById: publicProcedure
-      .input(z.object({ id: z.number() }))
+      .input(z.object({ id: z.number().int().positive() }))
       .query(async ({ input }) => {
         const product = await getProductById(input.id);
-        if (!product) {
+        // Security: Prevent accessing inactive products
+        if (!product || !product.active) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Product not found" });
         }
         return product;
       }),
 
     getByIds: publicProcedure
-      .input(z.object({ ids: z.array(z.number()) }))
+      .input(z.object({ ids: z.array(z.number().int().positive()) }))
       .query(async ({ input }) => {
-        return await getProductsByIds(input.ids);
+        const products = await getProductsByIds(input.ids);
+        // Security: Filter out inactive products
+        return products.filter((p) => p.active);
       }),
   }),
 
@@ -212,7 +215,7 @@ export const appRouter = router({
         z.object({
           appointmentTime: z.date(),
           consultationType: z.enum(["initial_consultation", "follow_up", "product_recommendation"]),
-          notes: z.string().optional(),
+          notes: z.string().max(5000).optional(),
         })
       )
       .mutation(async ({ input, ctx }) => {
@@ -247,10 +250,11 @@ export const appRouter = router({
     }),
 
     getBySlug: publicProcedure
-      .input(z.object({ slug: z.string() }))
+      .input(z.object({ slug: z.string().max(500) }))
       .query(async ({ input }) => {
         const post = await getBlogPostBySlug(input.slug);
-        if (!post) {
+        // Security: Prevent accessing unpublished blog posts
+        if (!post || !post.published) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Blog post not found" });
         }
         return post;
