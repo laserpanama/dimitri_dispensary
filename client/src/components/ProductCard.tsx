@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Leaf } from "lucide-react";
 import { Product } from "@shared/types";
@@ -13,7 +13,7 @@ interface ProductCardProps {
   onAddToCart: (productId: number) => void;
 }
 
-export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
+function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const [hasImageError, setHasImageError] = useState(false);
 
   return (
@@ -80,3 +80,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
     </div>
   );
 }
+
+// Optimization: Wrap ProductCard in React.memo to prevent unnecessary re-renders when props are identical.
+// Impact: Significantly reduces the number of render cycles in large lists (e.g., Menu page) when used with stable callbacks.
+export default memo(ProductCard);
