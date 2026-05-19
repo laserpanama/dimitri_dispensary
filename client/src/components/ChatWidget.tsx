@@ -52,7 +52,10 @@ export default function ChatWidget() {
   }, [chatMessages]);
 
   const handleOpenChat = async () => {
-    // Auth check removed for testing
+    if (!isAuthenticated) {
+      toast.error("Please login to chat");
+      return;
+    }
 
     if (!conversationId) {
       setIsLoading(true);
@@ -120,8 +123,6 @@ export default function ChatWidget() {
       setIsLoading(false);
     }
   };
-
-  // Auth guard removed
 
   return (
     <>

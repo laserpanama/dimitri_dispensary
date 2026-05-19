@@ -46,7 +46,8 @@ export function registerOAuthRoutes(app: Express) {
 
       res.redirect(302, "/");
     } catch (error) {
-      console.error("[OAuth] Callback failed", error);
+      const message = error instanceof Error ? error.message : "Unknown error";
+      console.error("[OAuth] Callback failed:", message);
       res.status(500).json({ error: "OAuth callback failed" });
     }
   });

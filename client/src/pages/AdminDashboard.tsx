@@ -6,7 +6,7 @@ import { ArrowLeft, Lock } from "lucide-react";
 export default function AdminDashboard() {
   const { user } = useAuth();
 
-  // Check if user is admin
+  // Check if user is admin (client-side guard; server-side enforcement via tRPC adminProcedure)
   if (!user || user.role !== "admin") {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">

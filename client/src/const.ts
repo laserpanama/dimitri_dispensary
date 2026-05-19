@@ -8,7 +8,6 @@ export const getLoginUrl = () => {
     
     // Basic validation
     if (!oauthPortalUrl || !appId) {
-      console.warn("OAuth configuration missing");
       return "/login";
     }
 
@@ -29,8 +28,7 @@ export const getLoginUrl = () => {
     url.searchParams.set("type", "signIn");
 
     return url.toString();
-  } catch (error) {
-    console.error("Failed to construct login URL:", error);
+  } catch {
     return "/login";
   }
 };
