@@ -42,17 +42,19 @@ export default function AdminDashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           {/* Product Management */}
-          <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-2xl p-8 backdrop-blur-sm hover:border-green-500/50 transition-all">
-            <div className="text-4xl mb-4">📦</div>
-            <h3 className="text-xl font-bold text-white mb-3">Product Management</h3>
-            <p className="text-gray-300 mb-6">Add, edit, and manage inventory</p>
-            <Button
-              variant="outline"
-              className="w-full border-green-500/50 text-green-400 hover:bg-green-500/10"
-            >
-              Manage Products
-            </Button>
-          </div>
+          <Link href="/admin/products" className="block">
+            <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-2xl p-8 backdrop-blur-sm hover:border-green-500/50 transition-all">
+              <div className="text-4xl mb-4">📦</div>
+              <h3 className="text-xl font-bold text-white mb-3">Product Management</h3>
+              <p className="text-gray-300 mb-6">Add, edit, and manage inventory</p>
+              <Button
+                variant="outline"
+                className="w-full border-green-500/50 text-green-400 hover:bg-green-500/10"
+              >
+                Manage Products
+              </Button>
+            </div>
+          </Link>
 
           {/* Order Management */}
           <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-2xl p-8 backdrop-blur-sm hover:border-green-500/50 transition-all">

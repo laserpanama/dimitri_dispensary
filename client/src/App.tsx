@@ -12,6 +12,7 @@ import Appointments from "./pages/Appointments";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import AdminDashboard from "./pages/AdminDashboard";
+import ProductManagement from "./pages/ProductManagement";
 import OrderHistory from "./pages/OrderHistory";
 
 function Router() {
@@ -25,6 +26,7 @@ function Router() {
       <Route path="/blog/:slug" component={BlogPost} />
       <Route path="/orders" component={OrderHistory} />
       <Route path="/admin" component={AdminDashboard} />
+      <Route path="/admin/products" component={ProductManagement} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
