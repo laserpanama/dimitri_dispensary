@@ -22,9 +22,14 @@ export async function createContext(
   }
 
   // Dev auto-admin: if no authenticated user and OAUTH is not configured,
-  // check for ?admin=true query param or x-dev-admin header
+  // check for x-dev-admin header or dev-admin cookie
   if (!user && !process.env.OAUTH_SERVER_URL) {
-    const isDevAdmin = opts.req.query.admin === "true" || opts.req.headers["x-dev-admin"] === "1";
+    const cookies = opts.req.headers.cookie?.split(';').reduce((acc, c) => {
+      const [k, v] = c.trim().split('=');
+      acc[k] = v;
+      return acc;
+    }, {} as Record<string, string>) || {};
+    const isDevAdmin = opts.req.headers["x-dev-admin"] === "1" || cookies["dev-admin"] === "1";
     if (isDevAdmin) {
       const devOpenId = "dev-admin";
       await db.upsertUser({
