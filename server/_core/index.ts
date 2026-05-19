@@ -51,6 +51,30 @@ async function startServer() {
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
 
+  // Dev login — creates/upserts a user and sets session cookie directly
+  // Only available when OAUTH_SERVER_URL is not configured
+  if (!process.env.OAUTH_SERVER_URL) {
+    app.get("/api/dev-login", async (req, res) => {
+      const openId = (req.query.openId as string) || "dev-admin";
+      const name = (req.query.name as string) || "Dev Admin";
+
+      await db.upsertUser({
+        openId,
+        name,
+        email: `${openId}@local`,
+        loginMethod: "dev",
+        lastSignedIn: new Date(),
+        role: "admin",
+      });
+
+      const sessionToken = await sdk.createSessionToken(openId, { name });
+      const cookieOptions = getSessionCookieOptions(req);
+      res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: 86400000 });
+
+      res.redirect(302, "/admin/products");
+    });
+  }
+
   // tRPC API
   app.use(
     "/api/trpc",
