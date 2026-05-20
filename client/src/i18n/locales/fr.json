@@ -110,7 +110,10 @@
     "deliveryAddress": "Adresse de Livraison",
     "orderSummary": "Résumé de la Commande",
     "placeOrder": "Passer la Commande",
-    "orderPlaced": "Commande Passée avec Succès!"
+    "orderPlaced": "Commande Passée avec Succès!",
+    "increaseQuantity": "Augmenter la quantité de {{name}}",
+    "decreaseQuantity": "Diminuer la quantité de {{name}}",
+    "removeItem": "Retirer {{name}} du panier"
   },
   "appointments": {
     "title": "Rendez-vous Médicaux",
