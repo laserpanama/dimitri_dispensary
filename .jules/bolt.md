@@ -5,3 +5,7 @@
 ## 2025-05-16 - [Database Indexing for Common Query Paths]
 **Learning:** Identifying frequently queried foreign keys (e.g., `userId` in `orders`, `appointments`, `notifications`) and filtering columns (e.g., `category` in `products`) and adding explicit MySQL indexes significantly improves query performance by avoiding full table scans (converting O(N) operations to O(log N)).
 **Action:** Always verify schema definitions and query patterns to ensure all columns used in `WHERE` clauses, `JOIN` conditions, or `ORDER BY` clauses are properly indexed. Use descriptive naming conventions (e.g., `table_column_idx`) for maintainability.
+
+## 2025-05-17 - [Derived State Optimization with useMemo]
+**Learning:** Replacing the `useState` + `useEffect` pattern with `useMemo` for derived state (like a lookup object from a fetch result) eliminates an unnecessary extra render cycle. The `useEffect` approach triggers a second render after the state is updated, whereas `useMemo` computes the value during the first render. This is particularly effective for components with complex UIs like the Shopping Cart.
+**Action:** Prefer `useMemo` over `useEffect` + `useState` for transforming API data or calculating values derived from props/state to minimize render cycles and improve UI responsiveness.
