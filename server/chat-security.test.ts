@@ -116,3 +116,74 @@ describe("Chat Security (IDOR)", () => {
     }
   });
 });
+
+describe("Chat Security (Admin Access Control)", () => {
+  it("should prevent non-admin from accessing getActiveConversations", async () => {
+    const { ctx } = createAuthContext(1, "user");
+    const caller = appRouter.createCaller(ctx);
+
+    try {
+      await caller.chat.getActiveConversations();
+      expect.fail("Should have thrown FORBIDDEN error");
+    } catch (error: any) {
+      if (error.name === 'AssertionError') throw error;
+      expect(error.code).toBe("FORBIDDEN");
+    }
+  });
+
+  it("should prevent non-admin from accessing assignToAgent", async () => {
+    const { ctx } = createAuthContext(1, "user");
+    const caller = appRouter.createCaller(ctx);
+
+    try {
+      await caller.chat.assignToAgent({ conversationId: 1, agentId: 2 });
+      expect.fail("Should have thrown FORBIDDEN error");
+    } catch (error: any) {
+      if (error.name === 'AssertionError') throw error;
+      expect(error.code).toBe("FORBIDDEN");
+    }
+  });
+
+  it("should prevent non-admin from accessing updateAgentStatus", async () => {
+    const { ctx } = createAuthContext(1, "user");
+    const caller = appRouter.createCaller(ctx);
+
+    try {
+      await caller.chat.updateAgentStatus({ status: "online" });
+      expect.fail("Should have thrown FORBIDDEN error");
+    } catch (error: any) {
+      if (error.name === 'AssertionError') throw error;
+      expect(error.code).toBe("FORBIDDEN");
+    }
+  });
+});
+
+describe("Chat Security (Input Validation)", () => {
+  it("should reject messages longer than 5000 characters", async () => {
+    const { ctx } = createAuthContext(1, "user");
+    const caller = appRouter.createCaller(ctx);
+    const longMessage = "a".repeat(5001);
+
+    try {
+      await caller.chat.sendMessage({ conversationId: 1, message: longMessage });
+      expect.fail("Should have thrown validation error");
+    } catch (error: any) {
+      if (error.name === 'AssertionError') throw error;
+      // Zod errors are usually BAD_REQUEST in tRPC
+      expect(error.message).toContain("expected string to have <=5000 characters");
+    }
+  });
+
+  it("should reject non-positive conversationId", async () => {
+    const { ctx } = createAuthContext(1, "user");
+    const caller = appRouter.createCaller(ctx);
+
+    try {
+      await caller.chat.getMessages({ conversationId: 0 });
+      expect.fail("Should have thrown validation error");
+    } catch (error: any) {
+      if (error.name === 'AssertionError') throw error;
+      expect(error.message).toContain("expected number to be >0");
+    }
+  });
+});
