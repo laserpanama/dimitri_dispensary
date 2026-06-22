@@ -115,4 +115,19 @@ describe("Chat Security (IDOR)", () => {
       expect(error.code).toBe("FORBIDDEN");
     }
   });
+
+  it("should reject messages exceeding 5000 characters", async () => {
+    const userCtx = createAuthContext(1).ctx;
+    const caller = appRouter.createCaller(userCtx);
+    const longMessage = "a".repeat(5001);
+
+    try {
+      await caller.chat.sendMessage({ conversationId: 1, message: longMessage });
+      expect.fail("Should have thrown validation error");
+    } catch (error: any) {
+      if (error.name === 'AssertionError') throw error;
+      expect(error.code).toBe("BAD_REQUEST");
+      expect(error.message).toContain("5000 character");
+    }
+  });
 });
