@@ -115,4 +115,32 @@ describe("Chat Security (IDOR)", () => {
       expect(error.code).toBe("FORBIDDEN");
     }
   });
+
+  it("should reject a message that is too long", async () => {
+    const { ctx } = createAuthContext(1);
+    const caller = appRouter.createCaller(ctx);
+    const longMessage = "a".repeat(5001);
+
+    try {
+      await caller.chat.sendMessage({ conversationId: 1, message: longMessage });
+      expect.fail("Should have thrown Zod error");
+    } catch (error: any) {
+      if (error.name === 'AssertionError') throw error;
+      expect(error.message).toContain("expected string to have <=5000 characters");
+    }
+  });
+
+  it("should reject a subject that is too long", async () => {
+    const { ctx } = createAuthContext(1);
+    const caller = appRouter.createCaller(ctx);
+    const longSubject = "s".repeat(256);
+
+    try {
+      await caller.chat.startConversation({ subject: longSubject });
+      expect.fail("Should have thrown Zod error");
+    } catch (error: any) {
+      if (error.name === 'AssertionError') throw error;
+      expect(error.message).toContain("expected string to have <=255 characters");
+    }
+  });
 });
