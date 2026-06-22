@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Leaf } from "lucide-react";
 import { Product } from "@shared/types";
@@ -13,7 +13,12 @@ interface ProductCardProps {
   onAddToCart: (productId: number) => void;
 }
 
-export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
+/**
+ * ProductCard component optimized with React.memo to prevent unnecessary re-renders.
+ * Re-renders are skipped if the product data and onAddToCart callback remain stable.
+ * Impact: Significant reduction in render cycles for the Product Grid in the Menu page.
+ */
+function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const [hasImageError, setHasImageError] = useState(false);
 
   return (
@@ -80,3 +85,5 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
     </div>
   );
 }
+
+export default memo(ProductCard);
