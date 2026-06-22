@@ -1,4 +1,4 @@
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertUser,
@@ -138,13 +138,19 @@ export async function getProducts(category?: string) {
   const db = await getDb();
   if (!db) return [];
 
+  // Security: Only return active products to public callers
   if (category) {
     return await db
       .select()
       .from(products)
-      .where(eq(products.category, category as any));
+      .where(
+        and(
+          eq(products.category, category as any),
+          eq(products.active, true)
+        )
+      );
   }
-  return await db.select().from(products);
+  return await db.select().from(products).where(eq(products.active, true));
 }
 
 export async function getProductById(id: number) {
