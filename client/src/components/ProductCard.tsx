@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Leaf } from "lucide-react";
 import { Product } from "@shared/types";
@@ -13,7 +13,7 @@ interface ProductCardProps {
   onAddToCart: (productId: number) => void;
 }
 
-export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
+const ProductCard = memo(function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const [hasImageError, setHasImageError] = useState(false);
 
   return (
@@ -79,4 +79,6 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
       {product.quantity === 0 && <p className="text-red-400 text-sm mt-2">Out of stock</p>}
     </div>
   );
-}
+});
+
+export default ProductCard;
