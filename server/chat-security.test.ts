@@ -116,3 +116,50 @@ describe("Chat Security (IDOR)", () => {
     }
   });
 });
+
+describe("Input Validation Security", () => {
+  it("should reject messages exceeding length limit", async () => {
+    const { ctx } = createAuthContext(1);
+    const caller = appRouter.createCaller(ctx);
+    const longMessage = "a".repeat(5001);
+
+    try {
+      await caller.chat.sendMessage({ conversationId: 1, message: longMessage });
+      expect.fail("Should have thrown validation error");
+    } catch (error: any) {
+      if (error.name === 'AssertionError') throw error;
+      expect(error.message).toContain("5000 character");
+    }
+  });
+
+  it("should reject invalid conversation IDs", async () => {
+    const { ctx } = createAuthContext(1);
+    const caller = appRouter.createCaller(ctx);
+
+    const invalidIds = [0, -1, 1.5];
+
+    for (const id of invalidIds) {
+      try {
+        await caller.chat.getMessages({ conversationId: id });
+        expect.fail(`Should have rejected ID: ${id}`);
+      } catch (error: any) {
+        if (error.name === 'AssertionError') throw error;
+        // Zod error
+      }
+    }
+  });
+
+  it("should reject subjects exceeding length limit", async () => {
+    const { ctx } = createAuthContext(1);
+    const caller = appRouter.createCaller(ctx);
+    const longSubject = "a".repeat(256);
+
+    try {
+      await caller.chat.startConversation({ subject: longSubject });
+      expect.fail("Should have thrown validation error");
+    } catch (error: any) {
+      if (error.name === 'AssertionError') throw error;
+      expect(error.message).toContain("255 character");
+    }
+  });
+});

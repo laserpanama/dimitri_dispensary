@@ -19,7 +19,8 @@ import { invokeLLM } from "./_core/llm";
 export const chatRouter = router({
   // Start or get active conversation
   startConversation: protectedProcedure
-    .input(z.object({ subject: z.string().optional() }))
+    // Mitigate DoS risk with length limits and ensure strict ID validation
+    .input(z.object({ subject: z.string().max(255).optional() }))
     .mutation(async ({ input, ctx }) => {
       const conversation = await getOrCreateConversation(ctx.user.id, input.subject);
       if (!conversation) {
@@ -30,7 +31,7 @@ export const chatRouter = router({
 
   // Get conversation messages
   getMessages: protectedProcedure
-    .input(z.object({ conversationId: z.number() }))
+    .input(z.object({ conversationId: z.number().int().positive() }))
     .query(async ({ input, ctx }) => {
       const conversation = await getConversationById(input.conversationId);
       if (!conversation) {
@@ -48,8 +49,8 @@ export const chatRouter = router({
   sendMessage: protectedProcedure
     .input(
       z.object({
-        conversationId: z.number(),
-        message: z.string().min(1),
+        conversationId: z.number().int().positive(),
+        message: z.string().min(1).max(5000),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -119,7 +120,7 @@ export const chatRouter = router({
 
   // Close conversation
   closeConversation: protectedProcedure
-    .input(z.object({ conversationId: z.number() }))
+    .input(z.object({ conversationId: z.number().int().positive() }))
     .mutation(async ({ input, ctx }) => {
       const conversation = await getConversationById(input.conversationId);
       if (!conversation) {
@@ -138,7 +139,7 @@ export const chatRouter = router({
 
   // Mark messages as read
   markAsRead: protectedProcedure
-    .input(z.object({ conversationId: z.number() }))
+    .input(z.object({ conversationId: z.number().int().positive() }))
     .mutation(async ({ input, ctx }) => {
       const conversation = await getConversationById(input.conversationId);
       if (!conversation) {
@@ -169,7 +170,12 @@ export const chatRouter = router({
   }),
 
   assignToAgent: protectedProcedure
-    .input(z.object({ conversationId: z.number(), agentId: z.number() }))
+    .input(
+      z.object({
+        conversationId: z.number().int().positive(),
+        agentId: z.number().int().positive(),
+      })
+    )
     .mutation(async ({ input, ctx }) => {
       // Only admins can assign conversations
       if (ctx.user?.role !== "admin") {
