@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
@@ -12,6 +13,7 @@ interface CartItem {
 }
 
 export default function Cart() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [cartItems, setCartItems] = useState<CartItem[]>(() =>
     JSON.parse(localStorage.getItem("cartItems") || "[]")
@@ -159,6 +161,7 @@ export default function Cart() {
                         <button
                           onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
                           className="px-3 py-2 text-green-400 hover:bg-green-500/20"
+                          aria-label={`${t("common.decrease")} ${t("common.quantity")} ${product.name}`}
                         >
                           −
                         </button>
@@ -168,6 +171,7 @@ export default function Cart() {
                         <button
                           onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
                           className="px-3 py-2 text-green-400 hover:bg-green-500/20"
+                          aria-label={`${t("common.increase")} ${t("common.quantity")} ${product.name}`}
                         >
                           +
                         </button>
@@ -176,6 +180,7 @@ export default function Cart() {
                       <button
                         onClick={() => handleRemoveItem(item.productId)}
                         className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+                        aria-label={`${t("common.remove")} ${product.name}`}
                       >
                         <Trash2 className="w-5 h-5" />
                       </button>
