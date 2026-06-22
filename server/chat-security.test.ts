@@ -115,4 +115,33 @@ describe("Chat Security (IDOR)", () => {
       expect(error.code).toBe("FORBIDDEN");
     }
   });
+
+  it("should prevent sending a message exceeding the character limit", async () => {
+    const { ctx } = createAuthContext(1);
+    const caller = appRouter.createCaller(ctx);
+    const conversationId = 123;
+
+    vi.spyOn(chatDb, 'getConversationById').mockResolvedValue({
+      id: conversationId,
+      userId: 1,
+      agentId: null,
+      status: "waiting",
+      subject: "Test",
+      startedAt: new Date(),
+      closedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const longMessage = "a".repeat(5001);
+
+    try {
+      await caller.chat.sendMessage({ conversationId, message: longMessage });
+      expect.fail("Should have thrown validation error");
+    } catch (error: any) {
+      if (error.name === 'AssertionError') throw error;
+      // TRPC/Zod validation error
+      expect(error.message).toContain("5000 character");
+    }
+  });
 });
