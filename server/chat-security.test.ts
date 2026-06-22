@@ -116,3 +116,33 @@ describe("Chat Security (IDOR)", () => {
     }
   });
 });
+
+describe("Chat Security (Validation & Authorization)", () => {
+  it("should reject messages exceeding 5000 characters", async () => {
+    const { ctx } = createAuthContext(1);
+    const caller = appRouter.createCaller(ctx);
+    const longMessage = "a".repeat(5001);
+
+    try {
+      await caller.chat.sendMessage({ conversationId: 1, message: longMessage });
+      expect.fail("Should have thrown validation error");
+    } catch (error: any) {
+      if (error.name === 'AssertionError') throw error;
+      // Zod errors in tRPC usually have a specific structure or message
+      expect(error.message).toContain("too_big");
+    }
+  });
+
+  it("should prevent non-admin users from accessing getActiveConversations", async () => {
+    const { ctx } = createAuthContext(1, "user");
+    const caller = appRouter.createCaller(ctx);
+
+    try {
+      await caller.chat.getActiveConversations();
+      expect.fail("Should have thrown FORBIDDEN error");
+    } catch (error: any) {
+      if (error.name === 'AssertionError') throw error;
+      expect(error.code).toBe("FORBIDDEN");
+    }
+  });
+});
