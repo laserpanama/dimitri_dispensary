@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
+import { usePersistFn } from "@/hooks/usePersistFn";
 import { Link } from "wouter";
 import { ArrowLeft, ShoppingCart, Leaf } from "lucide-react";
 import { toast } from "sonner";
@@ -25,7 +26,9 @@ export default function Menu() {
     category: selectedCategory,
   });
 
-  const handleAddToCart = (productId: number) => {
+  // Optimization: Use usePersistFn for the callback to provide a stable reference
+  // Impact: Ensures that ProductCard (wrapped in memo) does not re-render unnecessarily when Menu re-renders
+  const handleAddToCart = usePersistFn((productId: number) => {
     const cartItems = JSON.parse(localStorage.getItem("cartItems") || "[]");
     const existingItem = cartItems.find((item: any) => item.productId === productId);
 
@@ -37,7 +40,7 @@ export default function Menu() {
 
     localStorage.setItem("cartItems", JSON.stringify(cartItems));
     toast.success("Added to cart!");
-  };
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
