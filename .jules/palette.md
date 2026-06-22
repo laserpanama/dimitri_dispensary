@@ -1,3 +1,7 @@
 ## 2025-01-24 - [Accessible Action Buttons and Image Fallbacks]
 **Learning:** Icon-only buttons (like "Add to Cart") require explicit `aria-label` attributes to be accessible. For buttons that are disabled (e.g., "Out of Stock"), appending the state to the label (e.g., "Add to cart (Out of Stock)") provides immediate context to screen reader users. Additionally, providing a thematic fallback icon (e.g., a `Leaf` icon for a dispensary) for failed image loads ensures the UI remains polished and meaningful even when assets are missing.
 **Action:** Always wrap icon-only buttons in `Tooltip` components and provide descriptive `aria-label` attributes. Implement `onError` handlers on product images to show high-quality fallback icons.
+
+## 2025-05-23 - [Localized ARIA Labels and Linguistic Naturalness]
+**Learning:** When implementing localized ARIA labels, simple word-for-word translations often result in robotic or confusing speech for screen reader users. For example, in French, including articles (e.g., 'la quantité') is necessary for natural flow, and in German, nouns may require specific cases (e.g., 'der Menge' for dative contexts) to sound correct within a phrase like "Decrease quantity of [Product]".
+**Action:** Ensure that 'quantity' and other common UI nouns in localization files are appropriately cased and include necessary articles for each target language to maintain linguistic naturalness in screen reader output.
