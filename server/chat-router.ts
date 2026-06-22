@@ -1,4 +1,4 @@
-import { router, protectedProcedure, publicProcedure } from "./_core/trpc";
+import { router, protectedProcedure, publicProcedure, adminProcedure } from "./_core/trpc";
 import { z } from "zod";
 import {
   getOrCreateConversation,
@@ -49,7 +49,8 @@ export const chatRouter = router({
     .input(
       z.object({
         conversationId: z.number(),
-        message: z.string().min(1),
+        // Security: Limit message length to 5000 characters to mitigate Denial of Service (DoS) risks
+        message: z.string().min(1).max(5000),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -160,21 +161,15 @@ export const chatRouter = router({
     return await getOnlineAgents();
   }),
 
-  getActiveConversations: protectedProcedure.query(async ({ ctx }) => {
-    // Only admins can see all conversations
-    if (ctx.user?.role !== "admin") {
-      throw new TRPCError({ code: "FORBIDDEN" });
-    }
+  // Security: Use adminProcedure to enforce consistent RBAC and prevent unauthorized access to all conversations
+  getActiveConversations: adminProcedure.query(async () => {
     return await getActiveConversations();
   }),
 
-  assignToAgent: protectedProcedure
+  // Security: Use adminProcedure to ensure only authorized agents can assign conversations
+  assignToAgent: adminProcedure
     .input(z.object({ conversationId: z.number(), agentId: z.number() }))
-    .mutation(async ({ input, ctx }) => {
-      // Only admins can assign conversations
-      if (ctx.user?.role !== "admin") {
-        throw new TRPCError({ code: "FORBIDDEN" });
-      }
+    .mutation(async ({ input }) => {
       const success = await assignConversationToAgent(
         input.conversationId,
         input.agentId
