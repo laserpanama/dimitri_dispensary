@@ -115,4 +115,34 @@ describe("Chat Security (IDOR)", () => {
       expect(error.code).toBe("FORBIDDEN");
     }
   });
+
+  it("should prevent sending a message that exceeds the 5000 character limit", async () => {
+    const { ctx } = createAuthContext(1);
+    const conversationId = 123;
+    const longMessage = "a".repeat(5001);
+
+    vi.spyOn(chatDb, 'getConversationById').mockResolvedValue({
+      id: conversationId,
+      userId: 1,
+      agentId: null,
+      status: "waiting",
+      subject: "Test",
+      startedAt: new Date(),
+      closedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const caller = appRouter.createCaller(ctx);
+
+    try {
+      await caller.chat.sendMessage({ conversationId, message: longMessage });
+      expect.fail("Should have thrown BAD_REQUEST or Zod error");
+    } catch (error: any) {
+      if (error.name === 'AssertionError') throw error;
+      // tRPC throws a BAD_REQUEST with Zod error details for input validation failures
+      expect(error.code).toBe("BAD_REQUEST");
+      expect(error.message).toContain("expected string to have <=5000 characters");
+    }
+  });
 });
