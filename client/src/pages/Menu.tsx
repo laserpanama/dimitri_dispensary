@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { usePersistFn } from "@/hooks/usePersistFn";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
@@ -25,7 +26,12 @@ export default function Menu() {
     category: selectedCategory,
   });
 
-  const handleAddToCart = (productId: number) => {
+  /**
+   * PERFORMANCE OPTIMIZATION: Wrap the handler in usePersistFn to maintain
+   * a stable reference across renders. This prevents all ProductCard
+   * components from re-rendering when the Menu state changes.
+   */
+  const handleAddToCart = usePersistFn((productId: number) => {
     const cartItems = JSON.parse(localStorage.getItem("cartItems") || "[]");
     const existingItem = cartItems.find((item: any) => item.productId === productId);
 
@@ -37,7 +43,7 @@ export default function Menu() {
 
     localStorage.setItem("cartItems", JSON.stringify(cartItems));
     toast.success("Added to cart!");
-  };
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">

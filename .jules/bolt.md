@@ -5,3 +5,7 @@
 ## 2025-05-16 - [Database Indexing for Common Query Paths]
 **Learning:** Identifying frequently queried foreign keys (e.g., `userId` in `orders`, `appointments`, `notifications`) and filtering columns (e.g., `category` in `products`) and adding explicit MySQL indexes significantly improves query performance by avoiding full table scans (converting O(N) operations to O(log N)).
 **Action:** Always verify schema definitions and query patterns to ensure all columns used in `WHERE` clauses, `JOIN` conditions, or `ORDER BY` clauses are properly indexed. Use descriptive naming conventions (e.g., `table_column_idx`) for maintainability.
+
+## 2025-05-17 - [Stable Callbacks with usePersistFn]
+**Learning:** The codebase uses a custom `usePersistFn` hook as a project-specific alternative to `useCallback`. This hook provides a stable function reference without the dependency array overhead, which is ideal for passing event handlers to memoized child components like `ProductCard`.
+**Action:** When optimizing React components that receive callbacks, prefer `usePersistFn` (imported from `@/hooks/usePersistFn`) to maintain stable references and prevent unnecessary re-renders of memoized children.
